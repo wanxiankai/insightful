@@ -1,0 +1,100 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 用户认证模型 (遵循 NextAuth.js 规范)
+model User {
+  id            String          @id @default(cuid())
+  name          String?
+  email         String?         @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  meetingJobs   MeetingJob[]    // 一个用户可以有多个会议任务
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Insightful 应用的核心模型
+enum JobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model MeetingJob {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  status       JobStatus @default(PENDING)
+  fileName     String?
+  fileUrl      String?   @db.Text
+
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 一个任务对应一份分析结果
+  analysisResult AnalysisResult?
+}
+
+model AnalysisResult {
+  id           String @id @default(cuid())
+
+  transcript   String? @db.Text // 语音转录的全文
+  summary      String? @db.Text // AI生成的摘要
+
+  // 使用 JSON 类型存储结构化数据
+  actionItems  Json?   // 识别出的行动项
+  keyDecisions Json?   // 识别出的关键决策
+
+  jobId        String          @unique // 确保一对一关系
+  job          MeetingJob      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+}
