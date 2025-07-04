@@ -1,0 +1,2 @@
+This is a test file for uploading to Cloudflare R2.
+Testing with new R2 token configuration.
