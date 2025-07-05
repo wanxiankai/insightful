@@ -4,6 +4,13 @@ const nextConfig = {
   env: {
     R2_PUBLIC_URL: process.env.R2_PUBLIC_URL,
   },
+  /* config options here */
+  images: {
+    domains: [
+      'avatars.githubusercontent.com',  // GitHub 头像
+    ],
+  },
+
 };
 
 export default nextConfig;
