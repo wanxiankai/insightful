@@ -12,7 +12,7 @@ interface ButtonProps {
 
 export const Button = ({ 
   children, 
-  className = "btn btn-primary", 
+  className = "", 
   appName, 
   onClick,
   disabled = false
