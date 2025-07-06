@@ -1,7 +1,7 @@
 'use client';
 
 import { signIn } from 'next-auth/react';
-import { Button } from '@repo/ui/button';
+import { Button } from '@/app/ui/button';
 import Link from 'next/link';
 
 export default function SignIn() {
@@ -24,15 +24,6 @@ export default function SignIn() {
               </svg>
               使用 GitHub 登录
             </Button>
-            
-            <div className="text-center">
-              <Link 
-                href="/"
-                className="text-sm text-blue-600 hover:text-blue-800"
-              >
-                返回首页
-              </Link>
-            </div>
           </div>
         </div>
       </div>

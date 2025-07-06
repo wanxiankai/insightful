@@ -229,7 +229,7 @@ export default function UploadZone() {
   return (
     <div className="w-full max-w-2xl">
       <div className="bg-white rounded-lg p-6 shadow">
-        <h2 className="text-xl font-semibold mb-4 text-red-500">上传会议文件</h2>
+        <h2 className="text-xl font-semibold mb-4">上传会议文件</h2>
         
         <div
           {...getRootProps()}

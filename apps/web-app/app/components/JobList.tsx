@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button } from '@repo/ui/button';
+import { Button } from '@/app/ui/button';
 
 interface Job {
   id: string;
