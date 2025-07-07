@@ -2,12 +2,12 @@ import React from 'react'
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
-  color?: 'blue' | 'green' | 'red' | 'gray';
+  color?: 'default';
 }
 
 export default function LoadingSpinner({ 
   size = 'md', 
-  color = 'blue' 
+  color = 'default' 
 }: LoadingSpinnerProps) {
   // 根据尺寸确定宽高
   const sizeClass = {
@@ -18,10 +18,7 @@ export default function LoadingSpinner({
   
   // 根据颜色确定边框颜色
   const colorClass = {
-    blue: 'border-blue-600',
-    green: 'border-green-600',
-    red: 'border-red-600',
-    gray: 'border-gray-600'
+    default: 'border-[#61d0dc]'
   }[color];
   
   return (
