@@ -1,4 +1,4 @@
-// apps/web-app/src/components/AuthProvider.tsx
+// apps/web-app/components/AuthProvider.tsx
 
 "use client"; // 声明这是一个客户端组件
 

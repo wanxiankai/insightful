@@ -1,8 +1,8 @@
-// apps/web-app/app/components/JobList.tsx
+// apps/web-app/components/JobList.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button } from '@/app/ui/button';
+import { Button } from '@/components/ui/button';
 
 interface Job {
   id: string;
