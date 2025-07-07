@@ -1,9 +1,9 @@
 'use client';
 
 import { signIn } from 'next-auth/react';
-import { Button } from '@/app/ui/button';
 import { useState } from 'react';
-import LoadingSpinner from '../components/LoadingSpinner';
+import LoadingSpinner from '@/components/LoadingSpinner';
+import { Button } from '@/components/ui/button';
 
 export default function SignIn() {
   const [loginLoading, setLoginLoading] = useState(false);

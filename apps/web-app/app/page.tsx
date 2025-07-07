@@ -2,9 +2,9 @@
 
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
-import { JobList } from './components/JobList';
-import Header from './components/Header';
-import UploadZone from './components/UploadZone';
+import { JobList } from '@/components/JobList';
+import Header from '@/components/Header';
+import UploadZone from '@/components/UploadZone';
 
 export default async function Page() {
   const session = await auth();
