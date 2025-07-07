@@ -5,7 +5,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { v4 as uuidv4 } from 'uuid';
-import { getBucketName, getR2Client } from '@/app/lib/r2-client';
+import { getBucketName, getR2Client } from '@/lib/r2-client';
 
 export async function POST(request: NextRequest) {
   try {

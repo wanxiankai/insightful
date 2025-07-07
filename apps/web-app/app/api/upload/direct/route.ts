@@ -5,7 +5,7 @@ import { auth } from '@/auth';
 import { prisma } from '@repo/database';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { v4 as uuidv4 } from 'uuid';
-import { getBucketName, getPublicUrl, getR2Client } from '@/app/lib/r2-client';
+import { getBucketName, getPublicUrl, getR2Client } from '@/lib/r2-client';
 
 // 设置更大的请求体大小限制
 export const config = {

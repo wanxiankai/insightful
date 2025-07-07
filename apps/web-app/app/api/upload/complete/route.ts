@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@repo/database';
-import { getPublicUrl } from '@/app/lib/r2-client';
+import { getPublicUrl } from '@/lib/r2-client';
 
 export async function POST(request: NextRequest) {
   try {
