@@ -45,6 +45,7 @@ export async function POST(request: NextRequest) {
     
     const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 }); // 1小时有效期
     const fileUrl = getPublicUrl(filePath);
+    console.log('============生成的fileUrl:', fileUrl);
     
     return NextResponse.json({
       success: true,

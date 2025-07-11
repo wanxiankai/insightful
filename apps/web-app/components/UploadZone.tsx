@@ -106,7 +106,7 @@ export default function UploadZone() {
         throw new Error(`获取上传链接失败: ${presignedResponse.status} - ${errorText}`);
       }
 
-      const { url: presignedUrl, fileKey } = await presignedResponse.json();
+      const { url: presignedUrl, fileKey, fileUrl } = await presignedResponse.json();
 
       if (!presignedUrl) {
         throw new Error('服务器未返回有效的上传链接');
@@ -160,6 +160,7 @@ export default function UploadZone() {
         body: JSON.stringify({
           fileKey,
           fileName: upload.file.name,
+          fileUrl: fileUrl, // 包含文件URL
         }),
       });
 

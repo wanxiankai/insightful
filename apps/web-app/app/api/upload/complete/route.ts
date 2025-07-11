@@ -1,55 +1,68 @@
 // apps/web-app/app/api/upload/complete/route.ts
 
-import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@repo/database';
 import { getPublicUrl } from '@/lib/r2-client';
+import { PrismaClient } from '@repo/database';
+import { Client } from '@upstash/qstash';
+import { NextResponse } from 'next/server';
 
-export async function POST(request: NextRequest) {
+const prisma = new PrismaClient();
+
+// 初始化 QStash 客户端
+const qstashClient = new Client({
+  token: process.env.QSTASH_TOKEN!,
+});
+
+export async function POST(req: Request) {
   try {
-    // 验证用户是否已登录
+    // 1. 身份认证
     const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: '未授权' }, { status: 401 });
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const userId = session.user.id;
 
-    // 解析请求体
-    const { fileKey, fileName } = await request.json();
-    
-    if (!fileKey) {
+    // 2. 输入验证
+    const body = await req.json();
+    const { fileKey, fileName, fileUrl } = body;
+
+    if (!fileKey || !fileName) {
       return NextResponse.json(
-        { error: '缺少文件标识' },
+        { error: 'Missing fileKey or fileName' },
         { status: 400 }
       );
     }
-    
-    // 构建完整的文件URL
-    const fileUrl = getPublicUrl(fileKey);
-    
-    // 创建一个新的会议任务记录
-    const job = await prisma.meetingJob.create({
+
+    // 3. 数据库操作
+    const newJob = await prisma.meetingJob.create({
       data: {
-        fileName: fileName || fileKey.split('/').pop(),
-        fileUrl: fileUrl,
-        userId: session.user.id,
+        userId,
+        fileUrl,
+        fileName,
         status: 'PENDING',
       },
     });
-    
-    // 这里可以添加任务入队逻辑
-    // 例如：将任务ID发送到消息队列，或者触发后台处理
-    // await queueMeetingJobForProcessing(job.id);
-    
-    return NextResponse.json({
-      success: true,
-      jobId: job.id,
-      status: job.status,
+
+    // 4. 任务派发到 QStash
+    await qstashClient.publishJSON({
+      // URL 指向我们的 worker API
+      // url: `${process.env.NEXT_PUBLIC_APP_URL}/api/worker`,
+      url: `https://d4b4b1840b37.ngrok-free.app/api/worker`,
+      // 消息体只包含任务ID
+      body: {
+        jobId: newJob.id,
+      },
     });
-    
+
+    // 5. 返回响应
+    return NextResponse.json({
+      message: 'Upload complete, job created and dispatched.',
+      jobId: newJob.id,
+    });
   } catch (error) {
-    console.error('处理上传完成通知失败:', error);
+    console.error('Error in /api/upload/complete:', error);
     return NextResponse.json(
-      { error: '处理上传完成通知失败', details: error instanceof Error ? error.message : String(error) },
+      { error: 'Internal Server Error' },
       { status: 500 }
     );
   }
