@@ -2,9 +2,24 @@
 
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
-import { JobList } from '@/components/JobList';
+import  JobList  from '@/components/JobList';
 import Header from '@/components/Header';
 import UploadZone from '@/components/UploadZone';
+import { PrismaClient } from '@repo/database';
+
+const prisma = new PrismaClient();
+
+async function getInitialJobs(userId: string) {
+  const jobs = await prisma.meetingJob.findMany({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+  });
+  // Prisma 日期对象无法直接传递给客户端组件，需要序列化
+  return jobs.map(job => ({
+    ...job,
+    createdAt: job.createdAt.toISOString(),
+  }));
+}
 
 export default async function Page() {
   const session = await auth();
@@ -14,13 +29,16 @@ export default async function Page() {
     redirect('/signin');
   }
 
+   const initialJobs = await getInitialJobs(session.user.id);
+
+
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
       <Header />
       <main className="flex flex-1 flex-col items-center justify-center p-4 sm:p-6 md:p-8">
         <UploadZone />
         <div className="mt-8 w-full max-w-2xl">
-          <JobList />
+          <JobList initialJobs={initialJobs} />
         </div>
       </main>
     </div>
