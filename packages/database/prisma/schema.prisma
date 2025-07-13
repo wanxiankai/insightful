@@ -77,6 +77,7 @@ model MeetingJob {
   status       JobStatus @default(PENDING)
   fileName     String?
   fileUrl      String?   @db.Text
+  fileKey      String?   // 存储在R2中的文件键，用于删除操作
 
   userId       String
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
