@@ -37,7 +37,7 @@ export default async function Page() {
       <Header />
       <main className="flex flex-1 flex-col items-center justify-center p-4 sm:p-6 md:p-8">
         <UploadZone />
-        <div className="mt-8 w-full max-w-2xl">
+        <div className="w-full max-w-2xl">
           <JobList initialJobs={initialJobs} />
         </div>
       </main>

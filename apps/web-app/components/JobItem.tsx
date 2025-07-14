@@ -71,7 +71,7 @@ export default function JobItem({ job, onDelete }: JobItemProps) {
   };
 
   return (
-    <div className="flex items-center justify-between rounded-lg border bg-white p-4 shadow-sm">
+    <div className="flex items-center justify-between rounded-lg  bg-white p-4 shadow-sm">
       <div className="flex flex-col">
         <span className="font-medium text-gray-900">{job.fileName || 'Untitled Meeting'}</span>
         <span className="text-sm text-gray-500">

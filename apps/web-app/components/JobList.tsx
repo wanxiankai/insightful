@@ -1,5 +1,3 @@
-// apps/web-app/components/JobList.tsx
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -63,9 +61,9 @@ export default function JobList({ initialJobs }: { initialJobs: MeetingJob[] }) 
   };
 
   return (
-    <div className="mt-12 w-full max-w-2xl">
-      {jobs.length !== 0 && <h3 className="text-lg font-semibold text-gray-800">会议分析任务</h3>}
-      <div className="mt-4 space-y-4">
+    <div className="mt-6 w-full max-w-2xl">
+      {jobs.length !== 0 &&<h3 className="text-base font-semibold text-gray-800">历史文件记录</h3>}
+      <div className="mt-2 space-y-4">
         {jobs.map((job) => (
           <JobItem key={job.id} job={job} onDelete={handleDeleteJob} />
         ))}

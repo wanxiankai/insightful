@@ -39,22 +39,25 @@ function UploadProgressItem({
         <div className="flex items-center space-x-3">
           <FileIcon className="h-6 w-6 text-gray-500" />
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-gray-800 truncate">
+            <span className="text-sm font-medium text-[#333] truncate">
               {file.name}
             </span>
-            <span className="text-xs text-gray-500">
-              {(file.size / 1024 / 1024).toFixed(2)} MB
-            </span>
-            {status === 'success' && jobId && (
-              <span className="text-xs text-green-600 mt-1">
-                任务ID: {jobId}
+            <div className="flex items-center space-x-2">
+              <span className="text-xs text-[#666]">
+                {(file.size / 1024 / 1024).toFixed(2)} MB
               </span>
-            )}
-            {status === 'error' && error && (
-              <span className="text-xs text-red-600 mt-1">
-                错误: {error}
-              </span>
-            )}
+              <span className="text-gray-500 text-xs"> | </span>
+              {/* {status === 'success' && jobId && (
+                <span className="text-xs text-green-600">
+                  任务ID: {jobId}
+                </span>
+              )} */}
+              {status === 'error' && error && (
+                <span className="text-xs text-red-600">
+                  错误: {error}
+                </span>
+              )}
+            </div>
           </div>
         </div>
         <div className="flex items-center space-x-2">
@@ -122,8 +125,8 @@ export default function UploadZone() {
         // 监听进度事件
         xhr.upload.onprogress = (event) => {
           if (event.lengthComputable) {
-            // 计算上传进度百分比 (10-90%)
-            const progressPercent = 10 + Math.round((event.loaded / event.total) * 80);
+            // 计算上传进度百分比 (0-100%)
+            const progressPercent = Math.round((event.loaded / event.total) * 100);
             updateUploadProgress(upload.id, progressPercent);
           }
         };
@@ -149,7 +152,20 @@ export default function UploadZone() {
       });
 
       console.log('文件上传到R2成功, 通知后端...');
-      updateUploadProgress(upload.id, 90);
+      // updateUploadProgress(upload.id, 90);
+
+      // 更新状态为成功
+      setUploads(prevUploads =>
+        prevUploads.map(u =>
+          u.id === upload.id
+            ? { ...u, progress: 100, status: 'success' }
+            : u
+        )
+      );
+
+      setTimeout(() => {
+        setUploads(prevUploads => prevUploads.filter(u => u.id !== upload.id));
+      }, 3000);
 
       // 3. 通知后端上传完成，创建任务记录
       const completeResponse = await fetch('/api/upload/complete', {
@@ -170,18 +186,8 @@ export default function UploadZone() {
       }
 
       const result = await completeResponse.json();
-
-      // 更新状态为成功
-      setUploads(prevUploads =>
-        prevUploads.map(u =>
-          u.id === upload.id
-            ? { ...u, progress: 100, status: 'success', jobId: result.jobId }
-            : u
-        )
-      );
-
       console.log('上传流程完成:', result);
-      setUploads(prevUploads => prevUploads.filter(u => u.id !== upload.id));
+
 
     } catch (error) {
       console.error('上传过程中发生错误:', error);
@@ -258,7 +264,7 @@ export default function UploadZone() {
       {uploads.length > 0 && (
         <div className="mt-6 space-y-4">
           <h3 className="text-base font-semibold text-gray-800">
-            上传中...
+            文件上传中...
           </h3>
           {uploads.map((upload) => (
             <UploadProgressItem
