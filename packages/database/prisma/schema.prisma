@@ -70,7 +70,7 @@ enum JobStatus {
 }
 
 model MeetingJob {
-  id           String   @id @default(cuid())
+  id           String   @id // 移除 @default(cuid())，允许手动设置ID
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
