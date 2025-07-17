@@ -1,21 +1,20 @@
 // apps/web-app/app/api/jobs/route.ts
 
-import { NextResponse } from 'next/server';
-import { auth } from '@/auth';
 import { prisma } from '@repo/database';
+import { validateUser } from '@/lib/auth-utils';
+import { handleApiRoute } from '@/lib/api-utils';
+import { NextResponse } from 'next/server';
 
 export async function GET() {
-  try {
+  return handleApiRoute(async () => {
     // 验证用户是否已登录
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: '未授权' }, { status: 401 });
-    }
+    const { user, error } = await validateUser();
+    if (error) return error;
 
     // 获取当前用户的所有任务，按创建时间倒序排列
     const jobs = await prisma.meetingJob.findMany({
       where: {
-        userId: session.user.id,
+        userId: user.id,
       },
       orderBy: {
         createdAt: 'desc',
@@ -36,12 +35,5 @@ export async function GET() {
     }));
     
     return NextResponse.json(serializedJobs);
-    
-  } catch (error) {
-    console.error('获取任务列表失败:', error);
-    return NextResponse.json(
-      { error: '获取任务列表失败' },
-      { status: 500 }
-    );
-  }
+  });
 }

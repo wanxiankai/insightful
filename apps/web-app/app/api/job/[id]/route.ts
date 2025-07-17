@@ -1,9 +1,7 @@
 // apps/web-app/app/api/job/[id]/route.ts
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { PrismaClient } from '@repo/database';
-
-const prisma = new PrismaClient();
+import { prisma } from '@repo/database';
 
 // 删除一个任务及其相关资源
 export async function DELETE(
@@ -51,9 +49,8 @@ export async function DELETE(
           Key: job.fileKey, // 直接使用数据库中的 fileKey
         });
       
-        const result = await s3Client.send(deleteCommand);
-      } catch (error) {
-        console.error('Failed to delete file from R2:', error);
+        await s3Client.send(deleteCommand);
+      } catch {
         // 继续处理，即使文件删除失败
       }
     }
@@ -65,8 +62,7 @@ export async function DELETE(
     });
     
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Error deleting job:', error);
+  } catch {
     return NextResponse.json(
       { error: 'Failed to delete job' },
       { status: 500 }

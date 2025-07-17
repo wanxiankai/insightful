@@ -1,19 +1,15 @@
-// apps/web-app/app/api/upload/route.ts
-
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/auth';
 import { v4 as uuidv4 } from 'uuid';
-import { getBucketName, getPublicUrl, getR2Client } from '@/lib/r2-client';
+import { getBucketName, getR2Client, getPublicUrl } from '@/lib/r2-client';
+import { validateUser } from '@/lib/auth-utils';
 
 export async function POST(request: NextRequest) {
   try {
     // 验证用户是否已登录
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: '未授权' }, { status: 401 });
-    }
+    const { user, error } = await validateUser();
+    if (error) return error;
 
     // 解析请求体
     const { filename, contentType } = await request.json();
@@ -30,7 +26,7 @@ export async function POST(request: NextRequest) {
     const uniqueFileName = `${uuidv4()}.${fileExt}`;
     
     // 生成文件的完整路径，按用户ID组织
-    const filePath = `uploads/${session.user.id}/${uniqueFileName}`;
+    const filePath = `uploads/${user.id}/${uniqueFileName}`;
     
     // 使用共享 R2 客户端
     const s3Client = await getR2Client();
@@ -54,7 +50,6 @@ export async function POST(request: NextRequest) {
     });
     
   } catch (error) {
-    console.error('生成预签名URL失败:', error);
     return NextResponse.json(
       { error: '生成上传链接失败', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }

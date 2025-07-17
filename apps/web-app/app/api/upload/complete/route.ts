@@ -2,11 +2,10 @@
 
 import { auth } from '@/auth';
 import { getPublicUrl } from '@/lib/r2-client';
-import { PrismaClient } from '@repo/database';
+import { prisma } from '@repo/database';
 import { Client } from '@upstash/qstash';
 import { NextResponse } from 'next/server';
-
-const prisma = new PrismaClient();
+import { generateUniqueId } from '@/lib/api-utils';
 
 // 初始化 QStash 客户端
 const qstashClient = new Client({
@@ -45,7 +44,7 @@ export async function POST(req: Request) {
     }
 
     // 3. 数据库操作 - 使用临时ID（如果提供）或生成新ID
-    const jobId = tempId || `job_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const jobId = tempId || generateUniqueId('job');
     
     // 生成完整的公共 URL
     const fullFileUrl = fileUrl || getPublicUrl(fileKey);
@@ -67,7 +66,8 @@ export async function POST(req: Request) {
     // 4. 任务派发到 QStash
     await qstashClient.publishJSON({
       // URL 指向我们的 worker API
-      url: `${process.env.NEXT_PUBLIC_APP_URL}/api/worker`,
+      // url: `${process.env.NEXT_PUBLIC_APP_URL}/api/worker`,
+      url: `https://ab9bd1d0ff2e.ngrok-free.app/api/worker`,
       // 消息体只包含任务ID
       body: {
         jobId: newJob.id,
@@ -79,8 +79,7 @@ export async function POST(req: Request) {
       message: 'Upload complete, job created and dispatched.',
       jobId: newJob.id,
     });
-  } catch (error) {
-    console.error('Error in /api/upload/complete:', error);
+  } catch {
     return NextResponse.json(
       { error: 'Internal Server Error' },
       { status: 500 }
