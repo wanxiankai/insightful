@@ -3,11 +3,9 @@
 import { redirect } from "next/navigation";
 import Header from "@/components/Header";
 import { FileText, ListTodo, User, Calendar } from "lucide-react";
-import { PrismaClient } from "@repo/database";
+import { prisma } from "@repo/database";
 import { auth } from "@/auth";
 import Link from "next/link";
-
-const prisma = new PrismaClient();
 
 // 定义行动项的类型，以便在组件中安全使用
 interface ActionItem {
