@@ -127,8 +127,6 @@ async function handler(req: Request) {
       return NextResponse.json({ error: "Missing jobId" }, { status: 400 });
     }
 
-    console.log(`Starting processing for job ${jobId}`);
-
     // 更新状态为 PROCESSING
     await prisma.meetingJob.update({
       where: { id: jobId },
@@ -136,11 +134,10 @@ async function handler(req: Request) {
     });
 
     const job = await prisma.meetingJob.findUnique({ where: { id: jobId } });
+    
     if (!job || !job.fileUrl) {
       throw new Error(`Job not found or fileUrl is missing for job: ${jobId}`);
     }
-
-    console.log(`Downloading file from ${job.fileUrl}`);
 
     // 从 fileUrl 下载文件内容为 Buffer
     const fileResponse = await fetch(job.fileUrl);
@@ -150,8 +147,6 @@ async function handler(req: Request) {
     
     const audioBuffer = Buffer.from(await fileResponse.arrayBuffer());
     const audioMimeType = fileResponse.headers.get('content-type') || 'audio/mpeg';
-
-    console.log(`Successfully downloaded file, size: ${audioBuffer.length} bytes, mime: ${audioMimeType}`);
 
     // 获取模型
     const model = genAI.getGenerativeModel({ 
@@ -163,8 +158,6 @@ async function handler(req: Request) {
         },
       ],
     });
-
-    console.log(`Creating multipart content with audio file`);
 
     // 创建多部分内容，包含音频文件
     const fileContent = {
@@ -183,8 +176,6 @@ async function handler(req: Request) {
       ]
     };
 
-    console.log(`Generating content with Gemini model`);
-
     // 生成内容
     const result = await model.generateContent({
       contents: [promptContent],
@@ -195,8 +186,6 @@ async function handler(req: Request) {
     });
 
     const responseText = result.response.text();
-    console.log(`Received response from Gemini model`);
-    console.log(`Raw response: ${responseText}`);
 
     // 更健壮的 JSON 提取和解析
     let jsonText = responseText;
@@ -215,8 +204,6 @@ async function handler(req: Request) {
 
     // 3. 清理可能的多行文本
     jsonText = jsonText.replace(/\n/g, ' ').trim();
-
-    console.log(`Cleaned JSON: ${jsonText.substring(0, 100)}...`);
 
     let analysisResult;
     try {
@@ -243,8 +230,6 @@ async function handler(req: Request) {
           dueDate: "待定"
         }]
       };
-      
-      console.log('Created fallback analysis result');
     }
 
     // 存储结果
@@ -257,15 +242,12 @@ async function handler(req: Request) {
       },
     });
 
-    console.log(`Analysis results stored in database`);
-
     // 更新最终状态
     await prisma.meetingJob.update({
       where: { id: job.id },
       data: { status: "COMPLETED" },
     });
 
-    console.log(`Job ${jobId} completed successfully`);
     return NextResponse.json({ success: true, jobId });
 
   } catch (error) {

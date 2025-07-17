@@ -35,44 +35,23 @@ export async function DELETE(
     }
     
     // 4. 从 R2 存储桶中删除源文件
-    // 如果文件 URL 存在，解析文件路径
-    if (job.fileUrl) {
+    // 使用数据库中存储的 fileKey，而不是从 URL 解析
+    if (job.fileKey) {
       try {
-        // 从文件URL中提取文件键
-        // 针对R2的URL格式：https://pub-xxx.r2.dev/uploads/xxx/filename.m4a
-        // 我们需要提取 uploads/xxx/filename.m4a 作为文件键
-        const fileUrl = new URL(job.fileUrl);
-        // 获取路径名但去掉开头的斜杠
-        const fileKey = fileUrl.pathname.substring(1);
-        console.log(`Deleting file from R2: ${fileKey}`);
+        // 导入 R2 客户端函数
+        const { getR2Client, getBucketName } = await import('@/lib/r2-client');
+        const { DeleteObjectCommand } = await import('@aws-sdk/client-s3');
         
-        // 直接在 API 路由中删除文件
-        // 导入 AWS SDK 并直接调用 R2 删除
-        const { S3Client, DeleteObjectCommand } = await import('@aws-sdk/client-s3');
+        // 使用共享的 R2 客户端
+        const s3Client = await getR2Client();
+        const bucketName = getBucketName();
         
-        // 初始化 S3 客户端（用于访问 Cloudflare R2）
-        const s3Client = new S3Client({
-          region: 'auto',
-          endpoint: `${process.env.R2_ENDPOINT}`,
-          credentials: {
-            accessKeyId: process.env.R2_ACCESS_KEY_ID!,
-            secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
-          },
-          forcePathStyle: true, // 强制使用路径样式而非虚拟主机样式
+        const deleteCommand = new DeleteObjectCommand({
+          Bucket: bucketName,
+          Key: job.fileKey, // 直接使用数据库中的 fileKey
         });
-        
-        try {
-          const deleteCommand = new DeleteObjectCommand({
-            Bucket: process.env.R2_BUCKET_NAME!,
-            Key: fileKey,
-          });
-        
-          const result = await s3Client.send(deleteCommand);
-          console.log('R2 delete result:', result);
-        } catch (r2Error) {
-          console.error('Error deleting directly from R2:', r2Error);
-          // 继续处理，即使文件删除失败
-        }
+      
+        const result = await s3Client.send(deleteCommand);
       } catch (error) {
         console.error('Failed to delete file from R2:', error);
         // 继续处理，即使文件删除失败

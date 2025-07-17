@@ -17,14 +17,25 @@ export async function POST(req: Request) {
   try {
     // 1. 身份认证
     const session = await auth();
+    
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     const userId = session.user.id;
 
+    // 验证用户是否存在于数据库中
+    const userExists = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true }
+    });
+    
+    if (!userExists) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
     // 2. 输入验证
     const body = await req.json();
-    const { fileKey, fileName, fileUrl } = body;
+    const { fileKey, fileName, fileUrl, tempId } = body;
 
     if (!fileKey || !fileName) {
       return NextResponse.json(
@@ -33,21 +44,30 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3. 数据库操作
+    // 3. 数据库操作 - 使用临时ID（如果提供）或生成新ID
+    const jobId = tempId || `job_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // 生成完整的公共 URL
+    const fullFileUrl = fileUrl || getPublicUrl(fileKey);
+    
     const newJob = await prisma.meetingJob.create({
       data: {
+        id: jobId, // 使用前端传来的临时ID或生成新ID
         userId,
-        fileUrl,
+        fileUrl: fullFileUrl, // 存储完整的公共 URL
         fileName,
+        fileKey,
         status: 'PENDING',
       },
     });
+    
+    // 强制同步操作，确保数据写入
+    await prisma.$queryRaw`SELECT 1`;
 
     // 4. 任务派发到 QStash
     await qstashClient.publishJSON({
       // URL 指向我们的 worker API
-      // url: `${process.env.NEXT_PUBLIC_APP_URL}/api/worker`,
-      url: `https://d4b4b1840b37.ngrok-free.app/api/worker`,
+      url: `${process.env.NEXT_PUBLIC_APP_URL}/api/worker`,
       // 消息体只包含任务ID
       body: {
         jobId: newJob.id,

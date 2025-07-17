@@ -29,10 +29,13 @@ export async function GET() {
       },
     });
     
-    return NextResponse.json({
-      success: true,
-      jobs,
-    });
+    // 序列化日期对象
+    const serializedJobs = jobs.map(job => ({
+      ...job,
+      createdAt: job.createdAt.toISOString(),
+    }));
+    
+    return NextResponse.json(serializedJobs);
     
   } catch (error) {
     console.error('获取任务列表失败:', error);
