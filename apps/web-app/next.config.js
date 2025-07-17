@@ -6,8 +6,19 @@ const nextConfig = {
   },
   /* config options here */
   images: {
-    domains: [
-      'avatars.githubusercontent.com',  // GitHub 头像
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'avatars.githubusercontent.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'avatar.vercel.sh',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 
