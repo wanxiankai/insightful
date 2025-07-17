@@ -3,10 +3,8 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import Header from '@/components/Header';
-import { PrismaClient } from '@repo/database';
+import { prisma } from '@repo/database';
 import ClientWrapper from '@/components/ClientWrapper';
-
-const prisma = new PrismaClient();
 
 async function getInitialJobs(userId: string) {
   const jobs = await prisma.meetingJob.findMany({
