@@ -1,11 +1,10 @@
-// apps/web-app/app/components/UploadZone.tsx
-
 "use client";
 
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { UploadCloud, File as FileIcon, CheckCircle, AlertCircle } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
+import { MeetingJob } from "./JobItem";
 
 interface UploadedFile {
   id: string;
@@ -16,12 +15,16 @@ interface UploadedFile {
   jobId?: string;
 }
 
+interface UploadZoneProps {
+  onUploadComplete?: (tempJob: MeetingJob) => Promise<void>;
+}
+
 function UploadProgressItem({
   upload
 }: {
   upload: UploadedFile
 }) {
-  const { file, progress, status, error, jobId } = upload;
+  const { file, progress, status, error } = upload;
 
   return (
     <div className="relative w-full overflow-hidden rounded-lg border border-gray-200 bg-white">
@@ -47,11 +50,6 @@ function UploadProgressItem({
                 {(file.size / 1024 / 1024).toFixed(2)} MB
               </span>
               <span className="text-gray-500 text-xs"> | </span>
-              {/* {status === 'success' && jobId && (
-                <span className="text-xs text-green-600">
-                  任务ID: {jobId}
-                </span>
-              )} */}
               {status === 'error' && error && (
                 <span className="text-xs text-red-600">
                   错误: {error}
@@ -76,7 +74,7 @@ function UploadProgressItem({
   );
 }
 
-export default function UploadZone() {
+export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
   const [uploads, setUploads] = useState<UploadedFile[]>([]);
 
   // 更新上传进度的辅助函数
@@ -151,8 +149,7 @@ export default function UploadZone() {
         xhr.send(upload.file);
       });
 
-      console.log('文件上传到R2成功, 通知后端...');
-      // updateUploadProgress(upload.id, 90);
+      console.log('文件上传到R2成功');
 
       // 更新状态为成功
       setUploads(prevUploads =>
@@ -163,31 +160,27 @@ export default function UploadZone() {
         )
       );
 
-      setTimeout(() => {
+      // 生成临时 ID
+      const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // 创建临时 job 对象
+      const tempJob: MeetingJob = {
+        id: tempId,
+        fileName: upload.file.name,
+        status: 'PENDING',
+        createdAt: new Date().toISOString(),
+        fileKey: fileKey,
+        fileUrl: fileUrl, // 添加完整的文件 URL
+      };
+
+      // **关键改动：立即调用乐观更新，然后移除上传进度条**
+      if (onUploadComplete) {
+        // 先添加到JobList
+        await onUploadComplete(tempJob);
+        
+        // 立即移除上传进度条，因为JobList中已经有对应的项目了
         setUploads(prevUploads => prevUploads.filter(u => u.id !== upload.id));
-      }, 3000);
-
-      // 3. 通知后端上传完成，创建任务记录
-      const completeResponse = await fetch('/api/upload/complete', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fileKey,
-          fileName: upload.file.name,
-          fileUrl: fileUrl, // 包含文件URL
-        }),
-      });
-
-      if (!completeResponse.ok) {
-        const errorText = await completeResponse.text();
-        throw new Error(`通知上传完成失败: ${completeResponse.status} - ${errorText}`);
       }
-
-      const result = await completeResponse.json();
-      console.log('上传流程完成:', result);
-
 
     } catch (error) {
       console.error('上传过程中发生错误:', error);
@@ -203,12 +196,12 @@ export default function UploadZone() {
             : u
         )
       );
-      // 2秒后移除错误项
+      // 错误状态下，2秒后移除
       setTimeout(() => {
         setUploads(prevUploads => prevUploads.filter(u => u.id !== upload.id));
       }, 2000);
     }
-  }, [updateUploadProgress]);
+  }, [updateUploadProgress, onUploadComplete]);
 
   // 处理文件拖放
   const onDrop = useCallback((acceptedFiles: File[]) => {

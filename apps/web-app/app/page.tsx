@@ -1,11 +1,10 @@
-// apps/web-app/app/page.tsx
+// apps/web-app/app/page.tsx'
 
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
-import  JobList  from '@/components/JobList';
 import Header from '@/components/Header';
-import UploadZone from '@/components/UploadZone';
 import { PrismaClient } from '@repo/database';
+import ClientWrapper from '@/components/ClientWrapper';
 
 const prisma = new PrismaClient();
 
@@ -36,10 +35,7 @@ export default async function Page() {
     <div className="flex min-h-screen flex-col bg-gray-50">
       <Header />
       <main className="flex flex-1 flex-col items-center justify-center p-4 sm:p-6 md:p-8">
-        <UploadZone />
-        <div className="w-full max-w-2xl">
-          <JobList initialJobs={initialJobs} />
-        </div>
+        <ClientWrapper initialJobs={initialJobs} />
       </main>
     </div>
   );

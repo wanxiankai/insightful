@@ -1,4 +1,3 @@
-// apps/web-app/components/JobItem.tsx
 "use client";
 
 import { useState } from "react";
@@ -22,6 +21,7 @@ export type MeetingJob = {
   fileName: string | null;
   status: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
   fileKey?: string;
+  fileUrl?: string;
 };
 
 const statusInfo = {
@@ -34,9 +34,10 @@ const statusInfo = {
 interface JobItemProps {
   job: MeetingJob;
   onDelete: (jobId: string) => void;
+  isOptimistic?: boolean; // 新增属性
 }
 
-export default function JobItem({ job, onDelete }: JobItemProps) {
+export default function JobItem({ job, onDelete, isOptimistic = false }: JobItemProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -71,7 +72,14 @@ export default function JobItem({ job, onDelete }: JobItemProps) {
   };
 
   return (
-    <div className="flex items-center justify-between rounded-lg  bg-white p-4 shadow-sm">
+    <div className={`flex items-center justify-between rounded-lg bg-white p-4 shadow-sm relative ${isOptimistic ? 'opacity-75' : ''}`}>
+      {/* 乐观更新状态的视觉指示 */}
+      {isOptimistic && (
+        <div className="absolute top-2 right-2">
+          <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+        </div>
+      )}
+      
       <div className="flex flex-col">
         <span className="font-medium text-gray-900">{job.fileName || 'Untitled Meeting'}</span>
         <span className="text-sm text-gray-500">
