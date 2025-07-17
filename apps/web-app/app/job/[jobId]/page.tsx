@@ -16,6 +16,26 @@ interface ActionItem {
   dueDate: string;
 }
 
+// 类型守卫函数，用于验证对象是否符合 ActionItem 结构
+function isActionItem(item: unknown): item is ActionItem {
+  return (
+    typeof item === 'object' &&
+    item !== null &&
+    typeof (item as Record<string, unknown>).task === 'string' &&
+    typeof (item as Record<string, unknown>).assignee === 'string' &&
+    typeof (item as Record<string, unknown>).dueDate === 'string'
+  );
+}
+
+// 安全地将 Prisma Json 转换为 ActionItem 数组
+function parseActionItems(jsonData: unknown): ActionItem[] {
+  if (!Array.isArray(jsonData)) {
+    return [];
+  }
+  
+  return jsonData.filter(isActionItem);
+}
+
 // 服务器端函数，用于获取任务详情
 async function getJobDetails(jobId: string, userId: string) {
   const job = await prisma.meetingJob.findUnique({
@@ -68,9 +88,8 @@ export default async function JobDetailPage({
   }
 
   const { analysisResult } = job;
-  // 从 Prisma 的 Json 类型安全地转换为我们定义的 ActionItem 数组
-  const actionItems: ActionItem[] =
-    (analysisResult.actionItems as ActionItem[]) || [];
+  // 使用类型安全的解析函数，而不是直接类型断言
+  const actionItems: ActionItem[] = parseActionItems(analysisResult.actionItems);
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">

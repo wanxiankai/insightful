@@ -14,9 +14,14 @@ async function getInitialJobs(userId: string) {
     orderBy: { createdAt: "desc" },
   });
   // Prisma 日期对象无法直接传递给客户端组件，需要序列化
+  // 同时将 null 值转换为 undefined 以匹配组件类型
   return jobs.map(job => ({
-    ...job,
+    id: job.id,
     createdAt: job.createdAt.toISOString(),
+    fileName: job.fileName,
+    status: job.status,
+    fileKey: job.fileKey ?? undefined,
+    fileUrl: job.fileUrl ?? undefined,
   }));
 }
 
