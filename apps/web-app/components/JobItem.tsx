@@ -63,8 +63,7 @@ export default function JobItem({ job, onDelete, isOptimistic = false }: JobItem
       // 通知父组件已删除
       onDelete(job.id);
       setIsDeleteDialogOpen(false);
-    } catch (error) {
-      console.error('Error deleting job:', error);
+    } catch {
       alert('删除任务失败，请稍后重试');
     } finally {
       setIsDeleting(false);

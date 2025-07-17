@@ -5,6 +5,7 @@ import { useDropzone } from "react-dropzone";
 import { UploadCloud, File as FileIcon, CheckCircle, AlertCircle } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import { MeetingJob } from "./JobItem";
+import { generateUniqueId } from "@/lib/api-utils";
 
 interface UploadedFile {
   id: string;
@@ -90,7 +91,6 @@ export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
   const handleUpload = useCallback(async (upload: UploadedFile) => {
     try {
       // 1. 获取预签名URL
-      console.log('正在请求预签名URL...');
       const presignedResponse = await fetch('/api/upload', {
         method: 'POST',
         headers: {
@@ -114,7 +114,6 @@ export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
       }
 
       updateUploadProgress(upload.id, 10);
-      console.log('获取到预签名URL, 准备上传...');
 
       // 2. 使用XMLHttpRequest上传文件以便跟踪进度
       await new Promise<void>((resolve, reject) => {
@@ -149,8 +148,6 @@ export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
         xhr.send(upload.file);
       });
 
-      console.log('文件上传到R2成功');
-
       // 更新状态为成功
       setUploads(prevUploads =>
         prevUploads.map(u =>
@@ -161,7 +158,7 @@ export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
       );
 
       // 生成临时 ID
-      const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const tempId = generateUniqueId('temp');
       
       // 创建临时 job 对象
       const tempJob: MeetingJob = {
@@ -183,7 +180,6 @@ export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
       }
 
     } catch (error) {
-      console.error('上传过程中发生错误:', error);
       setUploads(prevUploads =>
         prevUploads.map(u =>
           u.id === upload.id

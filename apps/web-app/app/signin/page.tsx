@@ -11,8 +11,7 @@ export default function SignIn() {
     setLoginLoading(true);
     try {
       await signIn('github', { callbackUrl: '/' });
-    } catch (error) {
-      console.error('Login failed:', error);
+    } catch {
       setLoginLoading(false);
     }
   };
