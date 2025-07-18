@@ -1,5 +1,3 @@
-// apps/web-app/app/api/upload/complete/route.ts
-
 import { auth } from '@/auth';
 import { getPublicUrl } from '@/lib/r2-client';
 import { prisma } from '@repo/database';
@@ -18,6 +16,7 @@ export async function POST(req: Request) {
     const session = await auth();
     
     if (!session?.user?.id) {
+      console.error('Upload complete: Unauthorized access attempt');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     const userId = session.user.id;
@@ -29,6 +28,7 @@ export async function POST(req: Request) {
     });
     
     if (!userExists) {
+      console.error(`Upload complete: User not found - ${userId}`);
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
@@ -36,7 +36,10 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { fileKey, fileName, fileUrl, tempId } = body;
 
+    console.log('Upload complete request:', { fileKey, fileName, fileUrl, tempId, userId });
+
     if (!fileKey || !fileName) {
+      console.error('Upload complete: Missing required fields', { fileKey, fileName });
       return NextResponse.json(
         { error: 'Missing fileKey or fileName' },
         { status: 400 }
@@ -49,6 +52,8 @@ export async function POST(req: Request) {
     // 生成完整的公共 URL
     const fullFileUrl = fileUrl || getPublicUrl(fileKey);
     
+    console.log('Creating job with:', { jobId, userId, fullFileUrl, fileName, fileKey });
+
     const newJob = await prisma.meetingJob.create({
       data: {
         id: jobId, // 使用前端传来的临时ID或生成新ID
@@ -60,28 +65,41 @@ export async function POST(req: Request) {
       },
     });
     
+    console.log('Job created successfully:', newJob.id);
+    
     // 强制同步操作，确保数据写入
     await prisma.$queryRaw`SELECT 1`;
 
     // 4. 任务派发到 QStash
+    const qstashUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/worker`;
+    console.log('Dispatching to QStash:', qstashUrl);
+
     await qstashClient.publishJSON({
       // URL 指向我们的 worker API
-      url: `${process.env.NEXT_PUBLIC_APP_URL}/api/worker`,
-      // url: `https://ab9bd1d0ff2e.ngrok-free.app/api/worker`,
+      url: qstashUrl,
       // 消息体只包含任务ID
       body: {
         jobId: newJob.id,
       },
     });
 
+    console.log('Job dispatched to QStash successfully');
+
     // 5. 返回响应
     return NextResponse.json({
       message: 'Upload complete, job created and dispatched.',
       jobId: newJob.id,
     });
-  } catch {
+  } catch (error) {
+    console.error('Upload complete error:', error);
+    
+    // 返回更详细的错误信息（仅在开发环境）
+    const isDev = process.env.NODE_ENV === 'development';
     return NextResponse.json(
-      { error: 'Internal Server Error' },
+      { 
+        error: 'Internal Server Error',
+        ...(isDev && { details: error instanceof Error ? error.message : String(error) })
+      },
       { status: 500 }
     );
   }
