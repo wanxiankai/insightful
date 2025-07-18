@@ -50,9 +50,9 @@ function UploadProgressItem({
               <span className="text-xs text-[#666]">
                 {(file.size / 1024 / 1024).toFixed(2)} MB
               </span>
-              <span className="text-gray-500 text-xs"> | </span>
               {status === 'error' && error && (
                 <span className="text-xs text-red-600">
+                  <span className="text-gray-500 text-xs"> | </span> 
                   错误: {error}
                 </span>
               )}
@@ -159,7 +159,7 @@ export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
 
       // 生成临时 ID
       const tempId = generateUniqueId('temp');
-      
+
       // 创建临时 job 对象
       const tempJob: MeetingJob = {
         id: tempId,
@@ -174,7 +174,7 @@ export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
       if (onUploadComplete) {
         // 先添加到JobList
         await onUploadComplete(tempJob);
-        
+
         // 立即移除上传进度条，因为JobList中已经有对应的项目了
         setUploads(prevUploads => prevUploads.filter(u => u.id !== upload.id));
       }
