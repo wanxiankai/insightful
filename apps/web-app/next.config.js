@@ -1,10 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // 指定哪些环境变量可以在客户端使用
   env: {
     R2_PUBLIC_URL: process.env.R2_PUBLIC_URL,
   },
-  /* config options here */
   images: {
     remotePatterns: [
       {
@@ -22,17 +20,22 @@ const nextConfig = {
     ],
   },
   experimental: {
-    serverComponentsExternalPackages: ['@prisma/client']
+    serverComponentsExternalPackages: ['@prisma/client', 'prisma']
   },
   webpack: (config, { isServer }) => {
     if (isServer) {
-      config.externals.push('@prisma/client')
+      // 重要：确保 Prisma 查询引擎被正确打包
+      config.externals = config.externals || [];
+      config.externals.push({
+        '@prisma/client': '@prisma/client',
+        'prisma': 'prisma'
+      });
     }
     return config
   },
-  // 确保 Prisma 二进制文件被正确复制
   outputFileTracing: true,
-
+  // 添加这个配置来确保 monorepo 中的文件被正确追踪
+  transpilePackages: ['database'],
 };
 
 export default nextConfig;
