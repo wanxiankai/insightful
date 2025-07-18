@@ -4,7 +4,7 @@
 
 import { useSession, signOut } from "next-auth/react";
 import Image from "next/image";
-import { LogOut, User } from "lucide-react";
+import { LogOut, Star, User } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,6 +42,22 @@ export default function UserNav() {
             <User />
             <span className="text-sm font-medium text-gray-900 truncate">
               {user.name}
+            </span>
+          </div>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem className="">
+          <div className="w-full flex items-center justify-center gap-2">
+            <Star />
+            <span className="text-sm font-medium text-gray-900 truncate">
+              <a
+                href="https://github.com/wanxiankai/insightful"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline"
+              >
+                给我一个Star
+              </a>
             </span>
           </div>
         </DropdownMenuItem>
