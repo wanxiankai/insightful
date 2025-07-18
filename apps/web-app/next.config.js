@@ -20,11 +20,14 @@ const nextConfig = {
     ],
   },
   experimental: {
-    serverComponentsExternalPackages: ['@prisma/client', 'prisma']
+    serverComponentsExternalPackages: ['@prisma/client', 'prisma'],
+    outputFileTracingIncludes: {
+      '/api/**/*': ['../../packages/database/generated/prisma/**'],
+      '/*': ['../../packages/database/generated/prisma/**']
+    }
   },
   webpack: (config, { isServer }) => {
     if (isServer) {
-      // 重要：确保 Prisma 查询引擎被正确打包
       config.externals = config.externals || [];
       config.externals.push({
         '@prisma/client': '@prisma/client',
@@ -34,7 +37,6 @@ const nextConfig = {
     return config
   },
   outputFileTracing: true,
-  // 添加这个配置来确保 monorepo 中的文件被正确追踪
   transpilePackages: ['database'],
 };
 

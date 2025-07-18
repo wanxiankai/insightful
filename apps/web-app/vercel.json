@@ -1,9 +1,0 @@
-{
-  "buildCommand": "cd ../.. && pnpm install && cd apps/web-app && pnpm build",
-  "installCommand": "cd ../.. && pnpm install",
-  "functions": {
-    "**/*.js": {
-      "includeFiles": "../../packages/database/generated/prisma/**"
-    }
-  }
-}
