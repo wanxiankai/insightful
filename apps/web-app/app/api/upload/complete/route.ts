@@ -72,6 +72,7 @@ export async function POST(req: Request) {
 
     // 4. 任务派发到 QStash
     const qstashUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/worker`;
+    // const qstashUrl = `https://ab9bd1d0ff2e.ngrok-free.app/api/worker`;
     console.log('Dispatching to QStash:', qstashUrl);
 
     await qstashClient.publishJSON({
