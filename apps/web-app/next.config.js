@@ -21,6 +21,17 @@ const nextConfig = {
       },
     ],
   },
+  experimental: {
+    serverComponentsExternalPackages: ['@prisma/client']
+  },
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals.push('@prisma/client')
+    }
+    return config
+  },
+  // 确保 Prisma 二进制文件被正确复制
+  outputFileTracing: true,
 
 };
 
