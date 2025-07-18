@@ -50,16 +50,16 @@ export default function JobItem({ job, onDelete, isOptimistic = false }: JobItem
   const handleDelete = async () => {
     try {
       setIsDeleting(true);
-      
+
       // 调用删除 API
       const response = await fetch(`/api/job/${job.id}`, {
         method: 'DELETE',
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to delete job');
       }
-      
+
       // 通知父组件已删除
       onDelete(job.id);
       setIsDeleteDialogOpen(false);
@@ -78,7 +78,7 @@ export default function JobItem({ job, onDelete, isOptimistic = false }: JobItem
           <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
         </div>
       )}
-      
+
       <div className="flex flex-col">
         <span className="font-medium text-gray-900">{job.fileName || 'Untitled Meeting'}</span>
         <span className="text-sm text-gray-500">
@@ -86,22 +86,26 @@ export default function JobItem({ job, onDelete, isOptimistic = false }: JobItem
         </span>
       </div>
       <div className="flex items-center space-x-4">
-        <div className={`flex items-center space-x-2 rounded-full px-3 py-1 text-sm font-medium ${bgColor} ${color}`}>
+        <div className={`flex items-center rounded-full text-sm font-medium ${bgColor} ${color} ${
+          job.status === 'COMPLETED' 
+            ? 'px-2 sm:px-3 py-1 space-x-0 sm:space-x-2' 
+            : 'px-3 py-1 space-x-2'
+        }`}>
           <Icon className={`h-4 w-4 ${animate}`} />
-          <span>{text}</span>
+          <span className={job.status === 'COMPLETED' ? 'hidden sm:inline' : ''}>{text}</span>
         </div>
-        
+
         {job.status === 'COMPLETED' && (
           <Button asChild variant="outline" size="sm">
             <Link href={`/job/${job.id}`}>查看报告</Link>
           </Button>
         )}
-        
+
         <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
           <DialogTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               className={`${canDelete ? 'text-red-500 hover:text-red-600 hover:bg-red-50' : 'text-gray-300 cursor-not-allowed'}`}
               disabled={!canDelete}
               title={!canDelete ? '只能删除已完成或失败的任务' : '删除任务'}
