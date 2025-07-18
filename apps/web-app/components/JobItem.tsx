@@ -71,7 +71,7 @@ export default function JobItem({ job, onDelete, isOptimistic = false }: JobItem
   };
 
   return (
-    <div className={`flex items-center justify-between rounded-lg bg-white p-4 shadow-sm relative ${isOptimistic ? 'opacity-75' : ''}`}>
+    <div className={`flex items-center justify-between rounded-lg bg-white p-3 sm:p-4 shadow-sm relative ${isOptimistic ? 'opacity-75' : ''}`}>
       {/* 乐观更新状态的视觉指示 */}
       {isOptimistic && (
         <div className="absolute top-2 right-2">
@@ -79,13 +79,13 @@ export default function JobItem({ job, onDelete, isOptimistic = false }: JobItem
         </div>
       )}
 
-      <div className="flex flex-col">
-        <span className="font-medium text-gray-900">{job.fileName || 'Untitled Meeting'}</span>
-        <span className="text-sm text-gray-500">
+      <div className="flex flex-col flex-1 min-w-0 mr-3">
+        <span className="font-medium text-gray-900 truncate text-sm sm:text-base">{job.fileName || 'Untitled Meeting'}</span>
+        <span className="text-xs sm:text-sm text-gray-500">
           {new Date(job.createdAt).toLocaleString()}
         </span>
       </div>
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
         <div className={`flex items-center rounded-full text-sm font-medium ${bgColor} ${color} ${
           job.status === 'COMPLETED' 
             ? 'px-2 sm:px-3 py-1 space-x-0 sm:space-x-2' 
@@ -106,25 +106,36 @@ export default function JobItem({ job, onDelete, isOptimistic = false }: JobItem
             <Button
               variant="ghost"
               size="icon"
-              className={`${canDelete ? 'text-red-500 hover:text-red-600 hover:bg-red-50' : 'text-gray-300 cursor-not-allowed'}`}
+              className={`${canDelete ? 'text-red-500 hover:text-red-600 hover:bg-red-50' : 'text-gray-300 cursor-not-allowed'} min-h-[44px] min-w-[44px] sm:min-h-[36px] sm:min-w-[36px]`}
               disabled={!canDelete}
               title={!canDelete ? '只能删除已完成或失败的任务' : '删除任务'}
             >
               <Trash2 className="h-4 w-4" />
             </Button>
           </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>确认删除任务</DialogTitle>
-              <DialogDescription>
-                您确定要删除&ldquo;{job.fileName || 'Untitled Meeting'}&rdquo;任务吗？此操作将永久删除该任务及其相关数据，无法恢复。
+          <DialogContent className="sm:max-w-md max-w-[90vw] mx-4">
+            <DialogHeader className="text-left">
+              <DialogTitle className="text-lg font-semibold">确认删除任务</DialogTitle>
+              <DialogDescription className="text-sm text-gray-600 mt-2">
+                您确定要删除<span className="font-medium text-gray-900">&ldquo;{job.fileName || 'Untitled Meeting'}&rdquo;</span>任务吗？
+                <br />
+                <span className="text-xs text-gray-500 mt-1 block">此操作将永久删除该任务及其相关数据，无法恢复。</span>
               </DialogDescription>
             </DialogHeader>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+            <DialogFooter className="flex-col-reverse sm:flex-row gap-2 sm:gap-0 mt-6">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsDeleteDialogOpen(false)}
+                className="w-full sm:w-auto order-2 sm:order-1"
+              >
                 取消
               </Button>
-              <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+              <Button 
+                variant="destructive" 
+                onClick={handleDelete} 
+                disabled={isDeleting}
+                className="w-full sm:w-auto order-1 sm:order-2"
+              >
                 {isDeleting ? '删除中...' : '确认删除'}
               </Button>
             </DialogFooter>
