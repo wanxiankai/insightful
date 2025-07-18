@@ -66,8 +66,8 @@ export async function POST(req: Request) {
     // 4. 任务派发到 QStash
     await qstashClient.publishJSON({
       // URL 指向我们的 worker API
-      // url: `${process.env.NEXT_PUBLIC_APP_URL}/api/worker`,
-      url: `https://ab9bd1d0ff2e.ngrok-free.app/api/worker`,
+      url: `${process.env.NEXT_PUBLIC_APP_URL}/api/worker`,
+      // url: `https://ab9bd1d0ff2e.ngrok-free.app/api/worker`,
       // 消息体只包含任务ID
       body: {
         jobId: newJob.id,
