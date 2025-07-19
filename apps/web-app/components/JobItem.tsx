@@ -26,8 +26,8 @@ export type MeetingJob = {
 
 const statusInfo = {
   PENDING: { icon: Clock, text: "排队中", color: "text-gray-500", bgColor: "bg-gray-100" },
-  PROCESSING: { icon: Loader, text: "AI 分析中", color: "text-blue-500", bgColor: "bg-blue-100", animate: "animate-spin" },
-  COMPLETED: { icon: CheckCircle, text: "已完成", color: "text-green-500", bgColor: "bg-green-100" },
+  PROCESSING: { icon: Loader, text: "AI 分析中", color: "text-[#61d0de]", bgColor: "bg-[#61d0de]/10", animate: "animate-spin" },
+  COMPLETED: { icon: CheckCircle, text: "已完成", color: "text-[#4fb3c1]", bgColor: "bg-[#4fb3c1]/10" },
   FAILED: { icon: XCircle, text: "失败", color: "text-red-500", bgColor: "bg-red-100" },
 };
 
@@ -75,7 +75,7 @@ export default function JobItem({ job, onDelete, isOptimistic = false }: JobItem
       {/* 乐观更新状态的视觉指示 */}
       {isOptimistic && (
         <div className="absolute top-2 right-2">
-          <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+          <div className="w-2 h-2 bg-[#61d0de] rounded-full animate-pulse"></div>
         </div>
       )}
 
@@ -96,7 +96,7 @@ export default function JobItem({ job, onDelete, isOptimistic = false }: JobItem
         </div>
 
         {job.status === 'COMPLETED' && (
-          <Button asChild variant="outline" size="sm">
+          <Button asChild variant="outline" size="sm" className="border-[#61d0de] text-[#61d0de] hover:bg-[#61d0de]/5">
             <Link href={`/job/${job.id}`}>查看报告</Link>
           </Button>
         )}

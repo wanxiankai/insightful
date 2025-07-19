@@ -75,7 +75,7 @@ export default async function JobDetailPage({
             </p>
             <Link
               href="/"
-              className="mt-4 inline-block rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              className="mt-4 inline-block rounded-md bg-[#61d0de] px-4 py-2 text-sm font-medium text-white hover:bg-[#4fb3c1] transition-colors"
             >
               返回首页
             </Link>
@@ -107,7 +107,7 @@ export default async function JobDetailPage({
           {/* 会议摘要 */}
           <div className="rounded-xl border bg-white p-6 shadow-sm">
             <h2 className="flex items-center text-2xl font-semibold text-gray-800">
-              <FileText className="mr-3 h-6 w-6 text-blue-500" />
+              <FileText className="mr-3 h-6 w-6 text-[#61d0de]" />
               会议摘要
             </h2>
             <div className="prose prose-blue mt-4 max-w-none text-gray-600">
@@ -118,7 +118,7 @@ export default async function JobDetailPage({
           {/* 行动项 */}
           <div className="mt-8">
             <h2 className="flex items-center text-2xl font-semibold text-gray-800">
-              <ListTodo className="mr-3 h-6 w-6 text-green-500" />
+              <ListTodo className="mr-3 h-6 w-6 text-[#4fb3c1]" />
               行动项
             </h2>
             <div className="mt-4 space-y-4">

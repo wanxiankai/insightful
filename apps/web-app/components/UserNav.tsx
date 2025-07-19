@@ -26,7 +26,7 @@ export default function UserNav() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center cursor-pointer rounded-full bg-gray-100 ring-2 ring-transparent ring-offset-2 transition-all hover:ring-blue-500 focus:outline-none focus:ring-blue-500 min-h-[44px] min-w-[44px] sm:min-h-[40px] sm:min-w-[40px]">
+        <button className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center cursor-pointer rounded-full bg-gray-100 ring-2 ring-transparent ring-offset-2 transition-all hover:ring-[#61d0de] focus:outline-none focus:ring-[#61d0de] min-h-[44px] min-w-[44px] sm:min-h-[40px] sm:min-w-[40px]">
           <Image
             src={user.image ?? `https://avatar.vercel.sh/${user.id}.png`}
             alt={user.name ?? "User avatar"}

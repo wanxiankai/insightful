@@ -34,8 +34,8 @@ function UploadProgressItem({
         className={`absolute top-0 left-0 h-full transition-all duration-300 ease-in-out ${status === 'error'
           ? 'bg-red-100'
           : status === 'success'
-            ? 'bg-green-100'
-            : 'bg-blue-100'
+            ? 'bg-[#61d0de]/10'
+            : 'bg-[#61d0de]/20'
           }`}
         style={{ width: `${progress}%` }}
       />
@@ -61,10 +61,10 @@ function UploadProgressItem({
         </div>
         <div className="flex items-center space-x-2">
           {status === 'uploading' && (
-            <span className="text-sm font-semibold text-blue-600">{progress}%</span>
+            <span className="text-sm font-semibold text-[#61d0de]">{progress}%</span>
           )}
           {status === 'success' && (
-            <CheckCircle className="h-5 w-5 text-green-600" />
+            <CheckCircle className="h-5 w-5 text-[#61d0de]" />
           )}
           {status === 'error' && (
             <AlertCircle className="h-5 w-5 text-red-600" />
@@ -233,17 +233,17 @@ export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
         <div
           {...getRootProps()}
           className={`flex w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-10 text-center transition-colors duration-300 ${isDragActive
-            ? "border-blue-500 bg-blue-50"
-            : "border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100"
+            ? "border-[#61d0de] bg-[#61d0de]/5"
+            : "border-gray-300 bg-gray-50 hover:border-[#61d0de]/50 hover:bg-[#61d0de]/5"
             }`}
         >
           <input {...getInputProps()} />
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-200">
-            <UploadCloud className="h-8 w-8 text-gray-500" />
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#61d0de]/10">
+            <UploadCloud className="h-8 w-8 text-[#61d0de]" />
           </div>
           <p className="mt-4 text-base font-semibold text-gray-700">
             拖拽文件到此处 或{" "}
-            <span className="font-bold text-blue-600">选择文件</span>
+            <span className="font-bold text-[#61d0de]">选择文件</span>
           </p>
           <p className="mt-1 text-sm text-gray-500">
             支持音频和视频格式文件
