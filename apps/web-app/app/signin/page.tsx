@@ -5,11 +5,12 @@ import { useState, useEffect } from 'react';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { Button } from '@/components/ui/button';
 import { FileText, Clock, Users, Zap, CheckCircle, ArrowRight } from 'lucide-react';
+import Image from 'next/image';
 
 export default function SignIn() {
   const [loginLoading, setLoginLoading] = useState(false);
   const [currentFeature, setCurrentFeature] = useState(0);
-  
+
   const features = [
     {
       icon: <FileText className="w-8 h-8 text-[#61d0de]" />,
@@ -71,10 +72,7 @@ export default function SignIn() {
           {/* Logo区域 */}
           <div className="mb-12">
             <div className="flex items-center mb-6">
-              <div className="w-10 h-10 bg-gradient-to-r from-[#61d0de] to-[#4fb3c1] rounded-lg flex items-center justify-center mr-3">
-                <FileText className="w-6 h-6 text-white" />
-              </div>
-              <h1 className="text-2xl font-bold">Insightful</h1>
+              <Image src='/insightful-logo-transparent.png' width={188} height={78} alt='logo' />
             </div>
             <h2 className="text-4xl xl:text-5xl font-bold mb-4 leading-tight">
               AI 驱动的
@@ -104,11 +102,10 @@ export default function SignIn() {
               {features.map((feature, index) => (
                 <div
                   key={index}
-                  className={`p-4 rounded-lg border transition-all duration-500 ${
-                    index === currentFeature
+                  className={`p-4 rounded-lg border transition-all duration-500 ${index === currentFeature
                       ? 'border-[#61d0de] bg-[#61d0de]/10 transform scale-105'
                       : 'border-slate-700 bg-slate-800/50'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-start space-x-4">
                     <div className="flex-shrink-0">{feature.icon}</div>
@@ -134,11 +131,7 @@ export default function SignIn() {
             {/* 移动端Logo */}
             <div className="lg:hidden text-center mb-8">
               <div className="flex items-center justify-center mb-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-[#61d0de] to-[#4fb3c1] rounded-lg flex items-center justify-center mr-3">
-                  <FileText className="w-8 h-8 text-white" />
-
-                </div>
-                <h1 className="text-3xl font-bold">Insightful</h1>
+                <Image src='/insightful-logo-transparent.png' width={148} height={88} alt='logo' />
               </div>
               <p className="text-slate-600">AI 驱动的会议智能分析</p>
             </div>
