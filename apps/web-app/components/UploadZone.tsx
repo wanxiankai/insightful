@@ -1,11 +1,14 @@
 "use client";
 
+"use client";
+
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { UploadCloud, File as FileIcon, CheckCircle, AlertCircle } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import { MeetingJob } from "./JobItem";
 import { generateUniqueId } from "@/lib/api-utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface UploadedFile {
   id: string;
@@ -77,6 +80,7 @@ function UploadProgressItem({
 
 export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
   const [uploads, setUploads] = useState<UploadedFile[]>([]);
+  const { t, locale } = useLanguage();
 
   // 更新上传进度的辅助函数
   const updateUploadProgress = useCallback((id: string, progress: number) => {
@@ -133,13 +137,13 @@ export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
           if (xhr.status >= 200 && xhr.status < 300) {
             resolve();
           } else {
-            reject(new Error(`文件上传失败: ${xhr.status} - ${xhr.statusText}`));
+            reject(new Error(`${t.errors.uploadFailed}: ${xhr.status} - ${xhr.statusText}`));
           }
         };
 
         // 监听错误事件
         xhr.onerror = () => {
-          reject(new Error('网络错误，上传失败'));
+          reject(new Error(t.errors.networkError));
         };
 
         // 打开连接并发送请求
@@ -187,7 +191,7 @@ export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
               ...u,
               progress: 100,
               status: 'error',
-              error: error instanceof Error ? error.message : '上传失败'
+              error: error instanceof Error ? error.message : t.errors.uploadFailed
             }
             : u
         )
@@ -228,7 +232,7 @@ export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
   return (
     <div className="w-full max-w-2xl">
       <div className="bg-white rounded-lg p-6 shadow">
-        <h2 className="text-xl font-semibold mb-4">上传会议文件</h2>
+        <h2 className="text-xl font-semibold mb-4">{t.home.uploadTitle}</h2>
 
         <div
           {...getRootProps()}
@@ -242,18 +246,18 @@ export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
             <UploadCloud className="h-8 w-8 text-[#61d0de]" />
           </div>
           <p className="mt-4 text-base font-semibold text-gray-700">
-            拖拽文件到此处 或{" "}
-            <span className="font-bold text-[#61d0de]">选择文件</span>
+            {t.common.dragDropHere} {locale === 'zh' ? '或' : 'or'}{" "}
+            <span className="font-bold text-[#61d0de]">{t.common.selectFile}</span>
           </p>
           <p className="mt-1 text-sm text-gray-500">
-            支持音频和视频格式文件
+            {t.common.supportedFormats}
           </p>
         </div>
       </div>
       {uploads.length > 0 && (
         <div className="mt-6 space-y-4">
           <h3 className="text-base font-semibold text-gray-800">
-            文件上传中...
+            {t.common.uploading}...
           </h3>
           {uploads.map((upload) => (
             <UploadProgressItem

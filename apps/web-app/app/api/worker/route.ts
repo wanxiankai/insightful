@@ -6,12 +6,41 @@ import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/ge
 // 使用 GOOGLE_API_KEY 初始化 GoogleGenerativeAI 客户端
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
 
+// 多语言prompt模板
+const getPromptTemplate = (locale: string) => {
+  if (locale === 'en') {
+    return `You are a professional meeting record analyst. Please carefully analyze the following meeting audio. After analysis, please return the results strictly in the following JSON format without any additional explanations or Markdown tags: {"summary": "Core meeting content summary here", "actionItems": [{"task": "Specific action item description", "assignee": "Responsible person, 'TBD' if unclear", "dueDate": "Due date, 'TBD' if unclear"}]}`;
+  } else {
+    return `你是一个专业的会议记录分析师。请仔细分析接下来的这段会议音频。分析完成后，请严格按照以下JSON格式返回结果，不要包含任何额外的解释或Markdown标记：{"summary": "这里是会议的核心内容摘要", "actionItems": [{"task": "具体的行动项描述", "assignee": "负责人，如果不明确则为'待定'", "dueDate": "截止日期，如果不明确则为'待定'"}]}`;
+  }
+};
+
+// 多语言错误回退模板
+const getFallbackTemplate = (locale: string) => {
+  if (locale === 'en') {
+    return {
+      summary: "Unable to parse meeting summary",
+      fallbackTask: "AI parsing failed, please manually process meeting content",
+      assignee: "TBD",
+      dueDate: "TBD"
+    };
+  } else {
+    return {
+      summary: "无法解析会议摘要",
+      fallbackTask: "AI 解析失败，请手动处理会议内容",
+      assignee: "待定",
+      dueDate: "待定"
+    };
+  }
+};
+
 async function handler(req: Request) {
   let jobId: string | null = null;
 
   try {
     const body = await req.json();
     jobId = body.jobId;
+    const locale = body.locale || 'zh'; // 默认中文
 
     if (!jobId) {
       return NextResponse.json({ error: "Missing jobId" }, { status: 400 });
@@ -57,11 +86,11 @@ async function handler(req: Request) {
       }
     };
 
-    // 构造 Prompt
+    // 构造 Prompt（根据语言选择）
     const promptContent = {
       role: "user",
       parts: [
-        { text: `你是一个专业的会议记录分析师。请仔细分析接下来的这段会议音频。分析完成后，请严格按照以下JSON格式返回结果，不要包含任何额外的解释或Markdown标记：{"summary": "这里是会议的核心内容摘要", "actionItems": [{"task": "具体的行动项描述", "assignee": "负责人，如果不明确则为'待定'", "dueDate": "截止日期，如果不明确则为'待定'"}]}` },
+        { text: getPromptTemplate(locale) },
         fileContent
       ]
     };
@@ -107,15 +136,16 @@ async function handler(req: Request) {
     } catch {
       // 如果解析失败，使用正则表达式尝试提取关键信息
       const summaryMatch = responseText.match(/["']summary["']\s*:\s*["']([^"']*)["']/);
-      const summary = summaryMatch ? summaryMatch[1] : "无法解析会议摘要";
+      const fallback = getFallbackTemplate(locale);
+      const summary = summaryMatch ? summaryMatch[1] : fallback.summary;
       
       // 创建一个基本的结构
       analysisResult = {
         summary: summary,
         actionItems: [{
-          task: "AI 解析失败，请手动处理会议内容",
-          assignee: "待定",
-          dueDate: "待定"
+          task: fallback.fallbackTask,
+          assignee: fallback.assignee,
+          dueDate: fallback.dueDate
         }]
       };
     }

@@ -4,6 +4,7 @@ import { useRef } from "react";
 import JobList, { JobListRef } from "./JobList";
 import UploadZone from "./UploadZone";
 import { MeetingJob } from "./JobItem";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ClientWrapperProps {
   initialJobs: MeetingJob[];
@@ -11,6 +12,7 @@ interface ClientWrapperProps {
 
 export default function ClientWrapper({ initialJobs }: ClientWrapperProps) {
   const jobListRef = useRef<JobListRef>(null);
+  const { locale, t } = useLanguage();
 
   // 处理上传完成的回调
   const handleUploadComplete = async (tempJob: MeetingJob) => {
@@ -32,6 +34,7 @@ export default function ClientWrapper({ initialJobs }: ClientWrapperProps) {
             fileName: tempJob.fileName,
             fileUrl: tempJob.fileUrl,
             tempId: tempJob.id,
+            locale: locale, // 添加语言信息
           }),
         });
         
@@ -55,7 +58,7 @@ export default function ClientWrapper({ initialJobs }: ClientWrapperProps) {
         } else {
           // 所有重试都失败了
           jobListRef.current?.removeOptimisticJob(tempJob.id);
-          alert(`创建任务失败: ${error instanceof Error ? error.message : '未知错误'}，请稍后重试`);
+          alert(`${t.errors.createJobFailed}: ${error instanceof Error ? error.message : t.errors.tryAgainLater}`);
         }
       }
     };

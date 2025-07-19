@@ -13,6 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // 定义 MeetingJob 的类型，与 Prisma schema 对应
 export type MeetingJob = {
@@ -24,12 +25,7 @@ export type MeetingJob = {
   fileUrl?: string;
 };
 
-const statusInfo = {
-  PENDING: { icon: Clock, text: "排队中", color: "text-gray-500", bgColor: "bg-gray-100" },
-  PROCESSING: { icon: Loader, text: "AI 分析中", color: "text-[#61d0de]", bgColor: "bg-[#61d0de]/10", animate: "animate-spin" },
-  COMPLETED: { icon: CheckCircle, text: "已完成", color: "text-[#4fb3c1]", bgColor: "bg-[#4fb3c1]/10" },
-  FAILED: { icon: XCircle, text: "失败", color: "text-red-500", bgColor: "bg-red-100" },
-};
+// 将状态信息移到组件内部，以便使用翻译
 
 interface JobItemProps {
   job: MeetingJob;
@@ -40,6 +36,14 @@ interface JobItemProps {
 export default function JobItem({ job, onDelete, isOptimistic = false }: JobItemProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const { t } = useLanguage();
+
+  const statusInfo = {
+    PENDING: { icon: Clock, text: t.status.pending, color: "text-gray-500", bgColor: "bg-gray-100" },
+    PROCESSING: { icon: Loader, text: t.status.processing, color: "text-[#61d0de]", bgColor: "bg-[#61d0de]/10", animate: "animate-spin" },
+    COMPLETED: { icon: CheckCircle, text: t.status.completed, color: "text-[#4fb3c1]", bgColor: "bg-[#4fb3c1]/10" },
+    FAILED: { icon: XCircle, text: t.status.failed, color: "text-red-500", bgColor: "bg-red-100" },
+  };
 
   const { icon: Icon, text, color, bgColor } = statusInfo[job.status];
   const animate = job.status === 'PROCESSING' ? "animate-spin" : "";
@@ -64,7 +68,7 @@ export default function JobItem({ job, onDelete, isOptimistic = false }: JobItem
       onDelete(job.id);
       setIsDeleteDialogOpen(false);
     } catch {
-      alert('删除任务失败，请稍后重试');
+      alert(t.errors.deleteFailed);
     } finally {
       setIsDeleting(false);
     }
@@ -97,7 +101,7 @@ export default function JobItem({ job, onDelete, isOptimistic = false }: JobItem
 
         {job.status === 'COMPLETED' && (
           <Button asChild variant="outline" size="sm" className="border-[#61d0de] text-[#61d0de] hover:bg-[#61d0de]/5">
-            <Link href={`/job/${job.id}`}>查看报告</Link>
+            <Link href={`/job/${job.id}`}>{t.common.viewReport}</Link>
           </Button>
         )}
 
@@ -108,18 +112,18 @@ export default function JobItem({ job, onDelete, isOptimistic = false }: JobItem
               size="icon"
               className={`${canDelete ? 'text-red-500 hover:text-red-600 hover:bg-red-50' : 'text-gray-300 cursor-not-allowed'} min-h-[44px] min-w-[44px] sm:min-h-[36px] sm:min-w-[36px]`}
               disabled={!canDelete}
-              title={!canDelete ? '只能删除已完成或失败的任务' : '删除任务'}
+              title={!canDelete ? t.deleteConfirm.onlyCompletedCanDelete : t.common.delete}
             >
               <Trash2 className="h-4 w-4" />
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md max-w-[90vw] mx-4">
             <DialogHeader className="text-left">
-              <DialogTitle className="text-lg font-semibold">确认删除任务</DialogTitle>
+              <DialogTitle className="text-lg font-semibold">{t.deleteConfirm.title}</DialogTitle>
               <DialogDescription className="text-sm text-gray-600 mt-2">
-                您确定要删除<span className="font-medium text-gray-900">&ldquo;{job.fileName || 'Untitled Meeting'}&rdquo;</span>任务吗？
+                {t.deleteConfirm.description}<span className="font-medium text-gray-900">&ldquo;{job.fileName || 'Untitled Meeting'}&rdquo;</span>？
                 <br />
-                <span className="text-xs text-gray-500 mt-1 block">此操作将永久删除该任务及其相关数据，无法恢复。</span>
+                <span className="text-xs text-gray-500 mt-1 block">{t.deleteConfirm.warning}</span>
               </DialogDescription>
             </DialogHeader>
             <DialogFooter className="flex-col-reverse sm:flex-row gap-2 sm:gap-0 mt-6">
@@ -128,7 +132,7 @@ export default function JobItem({ job, onDelete, isOptimistic = false }: JobItem
                 onClick={() => setIsDeleteDialogOpen(false)}
                 className="w-full sm:w-auto order-2 sm:order-1"
               >
-                取消
+                {t.common.cancel}
               </Button>
               <Button 
                 variant="destructive" 
@@ -136,7 +140,7 @@ export default function JobItem({ job, onDelete, isOptimistic = false }: JobItem
                 disabled={isDeleting}
                 className="w-full sm:w-auto order-1 sm:order-2"
               >
-                {isDeleting ? '删除中...' : '确认删除'}
+                {isDeleting ? t.deleteConfirm.deleting : t.deleteConfirm.confirmDelete}
               </Button>
             </DialogFooter>
           </DialogContent>

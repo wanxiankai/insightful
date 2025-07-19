@@ -1,20 +1,25 @@
+'use client';
+
 import Link from "next/link";
 import UserNav from "@/components/UserNav";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface HeaderProps {
   showBackButton?: boolean;
 }
 
 export default function Header({ showBackButton = false }: HeaderProps) {
+  const { t } = useLanguage();
   return (
     <header className="sticky top-0 z-50 w-full flex items-center justify-center border-b border-b-[#ebedf1] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="w-full max-w-7xl flex h-14 items-center justify-between px-4 sm:px-6 lg:px-8">
         {showBackButton ? (
           <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity min-h-[44px] min-w-[44px] -ml-2 pl-2">
             <ArrowLeft className="h-5 w-5" />
-            <span className="text-sm font-medium hidden sm:inline">返回</span>
+            <span className="text-sm font-medium hidden sm:inline">{t.common.back}</span>
           </Link>
         ) : (
           <Link href="/" className="flex items-center space-x-2">
@@ -27,7 +32,8 @@ export default function Header({ showBackButton = false }: HeaderProps) {
             />
           </Link>
         )}
-        <div className="flex">
+        <div className="flex items-center space-x-2">
+          <LanguageSwitcher />
           <UserNav />
         </div>
       </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect, useImperativeHandle, forwardRef, useCallback } from "react";
 import { createClient } from "@supabase/supabase-js";
 import JobItem, { MeetingJob } from "./JobItem";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // 使用服务角色密钥进行实时订阅（更安全，避免权限问题）
 const getSupabaseClient = () => {
@@ -41,6 +42,7 @@ const JobList = forwardRef<JobListRef, { initialJobs: MeetingJob[] }>(
   ({ initialJobs }, ref) => {
     const [jobs, setJobs] = useState<MeetingJob[]>(initialJobs || []);
     const [optimisticJobs, setOptimisticJobs] = useState<Map<string, MeetingJob>>(new Map());
+    const { t } = useLanguage();
 
     // 将 Supabase 数据转换为 MeetingJob 格式的辅助函数
     const convertSupabaseToMeetingJob = (rawData: Record<string, unknown>): MeetingJob | null => {
@@ -225,7 +227,7 @@ const JobList = forwardRef<JobListRef, { initialJobs: MeetingJob[] }>(
 
     return (
       <div className="mt-6 w-full max-w-2xl">
-        {allJobs.length !== 0 && <h3 className="text-base font-semibold text-gray-800">历史文件记录</h3>}
+        {allJobs.length !== 0 && <h3 className="text-base font-semibold text-gray-800">{t.home.historyTitle}</h3>}
         <div className="mt-2 space-y-4">
           {allJobs.map((job) => (
             <JobItem 

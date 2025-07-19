@@ -13,9 +13,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "./ui/skeleton";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function UserNav() {
   const { data: session } = useSession();
+  const { t } = useLanguage();
 
   if (!session?.user) {
     return <Skeleton className="h-[32px] w-[32px] rounded-full" />
@@ -56,7 +58,7 @@ export default function UserNav() {
                 rel="noopener noreferrer"
                 className="hover:underline"
               >
-                给我一个Star
+                {t.nav.giveStar}
               </a>
             </span>
           </div>
@@ -68,7 +70,7 @@ export default function UserNav() {
         >
           <div className="w-full flex items-center justify-start gap-3 sm:gap-2">
             <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
-            <span className="text-sm font-medium text-gray-900 truncate">登出</span>
+            <span className="text-sm font-medium text-gray-900 truncate">{t.nav.signOut}</span>
           </div>
         </DropdownMenuItem>
       </DropdownMenuContent>
