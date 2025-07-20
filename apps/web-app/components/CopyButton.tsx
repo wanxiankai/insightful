@@ -18,7 +18,7 @@ export default function CopyButton({ text, className = '', size = 'md' }: CopyBu
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
-      
+
       // 2秒后重置状态
       setTimeout(() => {
         setCopied(false);
@@ -65,10 +65,10 @@ export default function CopyButton({ text, className = '', size = 'md' }: CopyBu
       className={`
         inline-flex items-center justify-center rounded-lg border transition-all duration-200 
         focus:outline-none focus:ring-2 focus:ring-[#61d0de]/20 focus:border-[#61d0de]
-        ${copied 
-          ? 'border-green-200 bg-green-50 text-green-600' 
-          : className.includes('bg-white/') 
-            ? 'border-white/30 text-white hover:bg-white/30 hover:border-white/50' 
+        ${copied
+          ? 'border-green-200 bg-green-50 text-green-600'
+          : className.includes('bg-white/')
+            ? 'border-white/30 text-white hover:bg-white/30 hover:border-white/50'
             : 'border-gray-200 bg-white text-gray-600 hover:border-[#61d0de] hover:bg-[#61d0de]/5 hover:text-[#61d0de]'
         }
         ${buttonSizeClasses[size]} ${className}

@@ -110,6 +110,9 @@ export interface Translations {
     copySummary: string;
     copyActionItems: string;
     copyAllActionItems: string;
+    exportMarkdown: string;
+    exportSuccess: string;
+    exportFailed: string;
   };
 
   // 删除确认
@@ -226,6 +229,9 @@ export const zhTranslations: Translations = {
     copySummary: '复制摘要',
     copyActionItems: '复制行动项',
     copyAllActionItems: '复制所有行动项',
+    exportMarkdown: '导出 Markdown',
+    exportSuccess: '导出成功',
+    exportFailed: '导出失败',
   },
   deleteConfirm: {
     title: '确认删除任务',
@@ -338,6 +344,9 @@ export const enTranslations: Translations = {
     copySummary: 'Copy Summary',
     copyActionItems: 'Copy Action Items',
     copyAllActionItems: 'Copy All Action Items',
+    exportMarkdown: 'Export Markdown',
+    exportSuccess: 'Export Success',
+    exportFailed: 'Export Failed',
   },
   deleteConfirm: {
     title: 'Confirm Delete Task',
