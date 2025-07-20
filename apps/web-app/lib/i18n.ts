@@ -26,15 +26,18 @@ export interface Translations {
     completed: string;
     failed: string;
     pending: string;
+    copy: string;
+    copied: string;
+    copySuccess: string;
   };
-  
+
   // 导航和头部
   nav: {
     signOut: string;
     giveStar: string;
     backToHome: string;
   };
-  
+
   // 登录页面
   signin: {
     title: string;
@@ -78,14 +81,14 @@ export interface Translations {
     loginAgreement: string;
     noAccount: string;
   };
-  
+
   // 主页面
   home: {
     uploadTitle: string;
     historyTitle: string;
     aiAnalyzing: string;
   };
-  
+
   // 任务状态
   status: {
     pending: string;
@@ -93,7 +96,7 @@ export interface Translations {
     completed: string;
     failed: string;
   };
-  
+
   // 任务详情页面
   jobDetail: {
     notFound: string;
@@ -104,8 +107,11 @@ export interface Translations {
     dueDate: string;
     noActionItems: string;
     analysisCompletedAt: string;
+    copySummary: string;
+    copyActionItems: string;
+    copyAllActionItems: string;
   };
-  
+
   // 删除确认
   deleteConfirm: {
     title: string;
@@ -115,7 +121,7 @@ export interface Translations {
     confirmDelete: string;
     onlyCompletedCanDelete: string;
   };
-  
+
   // 错误信息
   errors: {
     uploadFailed: string;
@@ -146,6 +152,9 @@ export const zhTranslations: Translations = {
     completed: '已完成',
     failed: '失败',
     pending: '排队中',
+    copy: '复制',
+    copied: '已复制',
+    copySuccess: '复制成功',
   },
   nav: {
     signOut: '登出',
@@ -214,6 +223,9 @@ export const zhTranslations: Translations = {
     dueDate: '截止日期',
     noActionItems: '本次会议未识别出明确的行动项。',
     analysisCompletedAt: '分析完成于',
+    copySummary: '复制摘要',
+    copyActionItems: '复制行动项',
+    copyAllActionItems: '复制所有行动项',
   },
   deleteConfirm: {
     title: '确认删除任务',
@@ -252,6 +264,9 @@ export const enTranslations: Translations = {
     completed: 'Completed',
     failed: 'Failed',
     pending: 'Pending',
+    copy: 'Copy',
+    copied: 'Copied',
+    copySuccess: 'Copy Success',
   },
   nav: {
     signOut: 'Sign Out',
@@ -320,6 +335,9 @@ export const enTranslations: Translations = {
     dueDate: 'Due Date',
     noActionItems: 'No clear action items were identified in this meeting.',
     analysisCompletedAt: 'Analysis completed at',
+    copySummary: 'Copy Summary',
+    copyActionItems: 'Copy Action Items',
+    copyAllActionItems: 'Copy All Action Items',
   },
   deleteConfirm: {
     title: 'Confirm Delete Task',
