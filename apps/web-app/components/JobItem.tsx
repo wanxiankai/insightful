@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { toast } from "sonner";
 
 // 定义 MeetingJob 的类型，与 Prisma schema 对应
 export type MeetingJob = {
@@ -45,6 +46,7 @@ export default function JobItem({ job, onDelete, onRename, isOptimistic = false 
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
   const [newFileName, setNewFileName] = useState(job.fileName || '');
   const [isRenaming, setIsRenaming] = useState(false);
+  const [renameError, setRenameError] = useState<string>('');
   const { t, locale } = useLanguage();
 
   const statusInfo = {
@@ -59,6 +61,9 @@ export default function JobItem({ job, onDelete, onRename, isOptimistic = false 
 
   // 判断任务是否可以操作（只有COMPLETED或FAILED状态的任务才可以操作）
   const canOperate = job.status === 'COMPLETED' || job.status === 'FAILED';
+  
+  // 判断任务是否可以重命名（只有COMPLETED状态的任务才可以重命名）
+  const canRename = job.status === 'COMPLETED';
 
   const handleDelete = async () => {
     try {
@@ -84,33 +89,70 @@ export default function JobItem({ job, onDelete, onRename, isOptimistic = false 
   };
 
   const handleRename = async () => {
-    if (!newFileName.trim() || newFileName.trim() === job.fileName) {
+    const trimmedFileName = newFileName.trim();
+    
+    // 验证输入
+    if (!trimmedFileName) {
+      setRenameError(locale === 'zh' ? '文件名不能为空' : 'File name cannot be empty');
+      return;
+    }
+    
+    if (trimmedFileName === job.fileName) {
       setIsRenameDialogOpen(false);
+      return;
+    }
+
+    if (trimmedFileName.length > 100) {
+      setRenameError(locale === 'zh' ? '文件名不能超过100个字符' : 'File name cannot exceed 100 characters');
       return;
     }
 
     try {
       setIsRenaming(true);
+      setRenameError('');
 
-      // TODO: 调用重命名 API（后续实现）
-      // const response = await fetch(`/api/job/${job.id}/rename`, {
-      //   method: 'PATCH',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ fileName: newFileName.trim() }),
-      // });
+      // 调用重命名 API
+      const response = await fetch(`/api/job/${job.id}/rename`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileName: trimmedFileName }),
+      });
 
-      // if (!response.ok) {
-      //   throw new Error('Failed to rename job');
-      // }
+      const data = await response.json();
 
-      // 暂时使用回调函数通知父组件
-      if (onRename) {
-        onRename(job.id, newFileName.trim());
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to rename job');
       }
 
+      // 通知父组件更新
+      if (onRename) {
+        onRename(job.id, trimmedFileName);
+      }
+
+      // 显示成功提示
+      toast.success(
+        locale === 'zh' ? '重命名成功' : 'Renamed successfully',
+        {
+          description: locale === 'zh' ? `任务已重命名为 "${trimmedFileName}"` : `Task renamed to "${trimmedFileName}"`,
+        }
+      );
+
       setIsRenameDialogOpen(false);
-    } catch {
-      alert('重命名失败，请稍后重试');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setRenameError(
+        locale === 'zh' 
+          ? `重命名失败: ${errorMessage}` 
+          : `Rename failed: ${errorMessage}`
+      );
+      
+      // 也显示toast错误提示
+      toast.error(
+        locale === 'zh' ? '重命名失败' : 'Rename failed',
+        {
+          description: errorMessage,
+        }
+      );
     } finally {
       setIsRenaming(false);
     }
@@ -118,6 +160,7 @@ export default function JobItem({ job, onDelete, onRename, isOptimistic = false 
 
   const handleRenameDialogOpen = () => {
     setNewFileName(job.fileName || '');
+    setRenameError('');
     setIsRenameDialogOpen(true);
   };
 
@@ -164,17 +207,19 @@ export default function JobItem({ job, onDelete, onRename, isOptimistic = false 
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-40 border-none outline-none" align="end">
-              <DropdownMenuItem
-                onClick={handleRenameDialogOpen}
-                className="cursor-pointer p-2"
-              >
-                <div className="w-full flex items-center justify-start gap-2">
-                  <Edit className="h-4 w-4" />
-                  <span className="text-sm font-medium text-gray-900 truncate">
-                    {t.common.rename}
-                  </span>
-                </div>
-              </DropdownMenuItem>
+              {canRename && (
+                <DropdownMenuItem
+                  onClick={handleRenameDialogOpen}
+                  className="cursor-pointer p-2"
+                >
+                  <div className="w-full flex items-center justify-start gap-2">
+                    <Edit className="h-4 w-4" />
+                    <span className="text-sm font-medium text-gray-900 truncate">
+                      {t.common.rename}
+                    </span>
+                  </div>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 onClick={() => setIsDeleteDialogOpen(true)}
                 className="cursor-pointer p-2"
@@ -247,11 +292,20 @@ export default function JobItem({ job, onDelete, onRename, isOptimistic = false 
               <input
                 type="text"
                 value={newFileName}
-                onChange={(e) => setNewFileName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#61d0de] focus:border-[#61d0de]"
+                onChange={(e) => {
+                  setNewFileName(e.target.value);
+                  if (renameError) setRenameError(''); // Clear error when user types
+                }}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#61d0de] focus:border-[#61d0de] ${
+                  renameError ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                }`}
                 placeholder={locale === 'zh' ? '输入新的任务名称' : 'Enter new task name'}
                 maxLength={100}
+                disabled={isRenaming}
               />
+              {renameError && (
+                <p className="mt-2 text-sm text-red-600">{renameError}</p>
+              )}
             </div>
             <DialogFooter className="flex-col-reverse sm:flex-row gap-2 sm:gap-0">
               <Button
