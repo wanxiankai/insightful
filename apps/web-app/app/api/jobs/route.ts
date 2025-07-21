@@ -27,13 +27,13 @@ export async function GET() {
         createdAt: true,
       },
     });
-    
+
     // 序列化日期对象
     const serializedJobs = jobs.map(job => ({
       ...job,
       createdAt: job.createdAt.toISOString(),
     }));
-    
+
     return NextResponse.json(serializedJobs);
   });
 }

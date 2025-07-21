@@ -29,6 +29,9 @@ export interface Translations {
     copy: string;
     copied: string;
     copySuccess: string;
+    rename: string;
+    actions: string;
+    moreActions: string;
   };
 
   // 导航和头部
@@ -158,6 +161,9 @@ export const zhTranslations: Translations = {
     copy: '复制',
     copied: '已复制',
     copySuccess: '复制成功',
+    rename: '重命名',
+    actions: '操作',
+    moreActions: '更多操作',
   },
   nav: {
     signOut: '登出',
@@ -273,6 +279,9 @@ export const enTranslations: Translations = {
     copy: 'Copy',
     copied: 'Copied',
     copySuccess: 'Copy Success',
+    rename: 'Rename',
+    actions: 'Actions',
+    moreActions: 'More Actions',
   },
   nav: {
     signOut: 'Sign Out',
