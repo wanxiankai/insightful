@@ -225,15 +225,38 @@ const JobList = forwardRef<JobListRef, { initialJobs: MeetingJob[] }>(
       setJobs(currentJobs => currentJobs.filter(job => job.id !== jobId));
     };
 
+    // 处理任务重命名
+    const handleRenameJob = (jobId: string, newName: string) => {
+      setJobs(currentJobs => 
+        currentJobs.map(job => 
+          job.id === jobId ? { ...job, fileName: newName } : job
+        )
+      );
+      
+      // 同时更新乐观数据（如果存在）
+      setOptimisticJobs(prev => {
+        if (prev.has(jobId)) {
+          const newMap = new Map(prev);
+          const existingJob = newMap.get(jobId);
+          if (existingJob) {
+            newMap.set(jobId, { ...existingJob, fileName: newName });
+          }
+          return newMap;
+        }
+        return prev;
+      });
+    };
+
     return (
       <div className="mt-6 w-full max-w-2xl">
         {allJobs.length !== 0 && <h3 className="text-base font-semibold text-gray-800">{t.home.historyTitle}</h3>}
-        <div className="mt-2 space-y-4">
+        <div className="mt-2 space-y-4 relative">
           {allJobs.map((job) => (
             <JobItem 
               key={job.id} 
               job={job} 
               onDelete={handleDeleteJob}
+              onRename={handleRenameJob}
               isOptimistic={optimisticJobs.has(job.id)}
             />
           ))}
