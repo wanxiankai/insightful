@@ -128,6 +128,30 @@ export interface Translations {
     onlyCompletedCanDelete: string;
   };
 
+  // 录制功能
+  recording: {
+    startRecording: string;
+    stopRecording: string;
+    recording: string;
+    requestPermission: string;
+    permissionRequired: string;
+    permissionGranted: string;
+    permissionDenied: string;
+    permissionDeniedDesc: string;
+    permissionInstructions: string;
+    deviceNotFound: string;
+    deviceNotFoundDesc: string;
+    deviceBusy: string;
+    deviceBusyDesc: string;
+    unsupportedBrowser: string;
+    unsupportedBrowserDesc: string;
+    tryAgain: string;
+    openSettings: string;
+    checkMicrophone: string;
+    closeOtherApps: string;
+    upgradebrowser: string;
+  };
+
   // 错误信息
   errors: {
     uploadFailed: string;
@@ -247,6 +271,28 @@ export const zhTranslations: Translations = {
     confirmDelete: '确认删除',
     onlyCompletedCanDelete: '只能删除已完成或失败的任务',
   },
+  recording: {
+    startRecording: '开始录制',
+    stopRecording: '停止录制',
+    recording: '录制中',
+    requestPermission: '请求权限',
+    permissionRequired: '需要麦克风权限',
+    permissionGranted: '麦克风已就绪',
+    permissionDenied: '麦克风权限被拒绝',
+    permissionDeniedDesc: '无法访问麦克风，请在浏览器设置中允许麦克风权限',
+    permissionInstructions: '为了开始录制，我们需要访问您的麦克风。请点击下方按钮授予权限。',
+    deviceNotFound: '未找到麦克风设备',
+    deviceNotFoundDesc: '请确保您的设备已连接麦克风并重试',
+    deviceBusy: '麦克风正在被其他应用使用',
+    deviceBusyDesc: '请关闭其他正在使用麦克风的应用程序',
+    unsupportedBrowser: '浏览器不支持录制功能',
+    unsupportedBrowserDesc: '请使用最新版本的Chrome、Firefox或Safari浏览器',
+    tryAgain: '重试',
+    openSettings: '打开设置',
+    checkMicrophone: '检查麦克风',
+    closeOtherApps: '关闭其他应用',
+    upgradebrowser: '升级浏览器',
+  },
   errors: {
     uploadFailed: '上传失败',
     createJobFailed: '创建任务失败',
@@ -364,6 +410,28 @@ export const enTranslations: Translations = {
     deleting: 'Deleting...',
     confirmDelete: 'Confirm Delete',
     onlyCompletedCanDelete: 'Only completed or failed tasks can be deleted',
+  },
+  recording: {
+    startRecording: 'Start Recording',
+    stopRecording: 'Stop Recording',
+    recording: 'Recording',
+    requestPermission: 'Request Permission',
+    permissionRequired: 'Microphone Permission Required',
+    permissionGranted: 'Microphone Ready',
+    permissionDenied: 'Microphone Permission Denied',
+    permissionDeniedDesc: 'Cannot access microphone. Please allow microphone access in your browser settings.',
+    permissionInstructions: 'To start recording, we need access to your microphone. Please click the button below to grant permission.',
+    deviceNotFound: 'Microphone Device Not Found',
+    deviceNotFoundDesc: 'Please ensure your device has a microphone connected and try again.',
+    deviceBusy: 'Microphone is Being Used by Another Application',
+    deviceBusyDesc: 'Please close other applications that are using the microphone.',
+    unsupportedBrowser: 'Browser Does Not Support Recording',
+    unsupportedBrowserDesc: 'Please use the latest version of Chrome, Firefox, or Safari.',
+    tryAgain: 'Try Again',
+    openSettings: 'Open Settings',
+    checkMicrophone: 'Check Microphone',
+    closeOtherApps: 'Close Other Apps',
+    upgradebrowser: 'Upgrade Browser',
   },
   errors: {
     uploadFailed: 'Upload failed',
