@@ -32,6 +32,16 @@ export interface AudioFileMetadata {
   size: number;
   duration: number;
   sampleRate?: number;
+  // Enhanced metadata fields
+  channelCount?: number;
+  audioBitsPerSecond?: number;
+  estimatedBitrate?: number;
+  echoCancellation?: boolean;
+  noiseSuppression?: boolean;
+  autoGainControl?: boolean;
+  trackLabel?: string;
+  createdAt?: string;
+  chunkCount?: number;
 }
 
 export interface AudioRecorderState {
