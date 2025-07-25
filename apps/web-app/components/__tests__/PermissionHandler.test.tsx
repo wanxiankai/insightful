@@ -1,33 +1,18 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent } from '../../../src/test/test-utils';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { PermissionHandler } from '../PermissionHandler';
 import { PermissionStatus } from '@/types/recording';
-import { LanguageProvider } from '@/contexts/LanguageContext';
-
-// Mock the LanguageContext
-const MockLanguageProvider = ({ children }: { children: React.ReactNode }) => (
-  <LanguageProvider>
-    {children}
-  </LanguageProvider>
-);
-
-const renderWithLanguageProvider = (component: React.ReactElement) => {
-  return render(
-    <MockLanguageProvider>
-      {component}
-    </MockLanguageProvider>
-  );
-};
 
 describe('PermissionHandler', () => {
-  const mockOnRequestPermission = jest.fn();
+  const mockOnRequestPermission = vi.fn();
 
   beforeEach(() => {
     mockOnRequestPermission.mockClear();
   });
 
   it('renders permission request UI when permission is unknown', () => {
-    renderWithLanguageProvider(
+    render(
       <PermissionHandler
         hasPermission={PermissionStatus.UNKNOWN}
         onRequestPermission={mockOnRequestPermission}
@@ -39,7 +24,7 @@ describe('PermissionHandler', () => {
   });
 
   it('renders permission request UI when permission is prompt', () => {
-    renderWithLanguageProvider(
+    render(
       <PermissionHandler
         hasPermission={PermissionStatus.PROMPT}
         onRequestPermission={mockOnRequestPermission}
@@ -51,7 +36,7 @@ describe('PermissionHandler', () => {
   });
 
   it('renders granted status when permission is granted', () => {
-    renderWithLanguageProvider(
+    render(
       <PermissionHandler
         hasPermission={PermissionStatus.GRANTED}
         onRequestPermission={mockOnRequestPermission}
@@ -62,7 +47,7 @@ describe('PermissionHandler', () => {
   });
 
   it('renders error UI when permission is denied', () => {
-    renderWithLanguageProvider(
+    render(
       <PermissionHandler
         hasPermission={PermissionStatus.DENIED}
         onRequestPermission={mockOnRequestPermission}
@@ -76,7 +61,7 @@ describe('PermissionHandler', () => {
   });
 
   it('calls onRequestPermission when request button is clicked', () => {
-    renderWithLanguageProvider(
+    render(
       <PermissionHandler
         hasPermission={PermissionStatus.UNKNOWN}
         onRequestPermission={mockOnRequestPermission}
@@ -90,7 +75,7 @@ describe('PermissionHandler', () => {
   });
 
   it('shows loading state when isLoading is true', () => {
-    renderWithLanguageProvider(
+    render(
       <PermissionHandler
         hasPermission={PermissionStatus.UNKNOWN}
         onRequestPermission={mockOnRequestPermission}
@@ -102,7 +87,7 @@ describe('PermissionHandler', () => {
   });
 
   it('renders device not found error correctly', () => {
-    renderWithLanguageProvider(
+    render(
       <PermissionHandler
         hasPermission={PermissionStatus.DENIED}
         onRequestPermission={mockOnRequestPermission}
@@ -115,7 +100,7 @@ describe('PermissionHandler', () => {
   });
 
   it('renders device busy error correctly', () => {
-    renderWithLanguageProvider(
+    render(
       <PermissionHandler
         hasPermission={PermissionStatus.DENIED}
         onRequestPermission={mockOnRequestPermission}
@@ -128,7 +113,7 @@ describe('PermissionHandler', () => {
   });
 
   it('renders unsupported browser error correctly', () => {
-    renderWithLanguageProvider(
+    render(
       <PermissionHandler
         hasPermission={PermissionStatus.DENIED}
         onRequestPermission={mockOnRequestPermission}

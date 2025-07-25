@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
 import RecordingTimer from '../RecordingTimer';
 
 describe('RecordingTimer', () => {
@@ -49,9 +50,9 @@ describe('RecordingTimer', () => {
   });
 
   it('applies recording animation when isRecording is true', () => {
-    render(<RecordingTimer {...defaultProps} isRecording={true} />);
+    const { container } = render(<RecordingTimer {...defaultProps} isRecording={true} />);
     
-    const clockIcon = screen.getByRole('img', { hidden: true });
+    const clockIcon = container.querySelector('svg');
     expect(clockIcon).toHaveClass('animate-pulse');
   });
 

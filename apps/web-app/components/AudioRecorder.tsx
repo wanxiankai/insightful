@@ -634,7 +634,7 @@ export default function AudioRecorder({
     
     getRemainingTime: (): number => Math.max(0, maxDuration - state.duration),
     
-    getProgress: (): number => Math.min(1, state.duration / maxDuration),
+    getProgress: (): number => maxDuration > 0 ? Math.min(1, state.duration / maxDuration) : 0,
     
     // State validation
     isValidState: (): boolean => {
