@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { RecordingStatus } from "@/types/recording";
 import { Mic, Square, Loader2 } from "lucide-react";
+import RecordingIndicator from "./RecordingIndicator";
 
 export interface RecordingControlsProps {
   status: RecordingStatus;
@@ -74,32 +75,43 @@ export default function RecordingControls({
   };
 
   return (
-    <div className={`flex gap-3 ${className}`}>
-      {/* Start Recording Button */}
-      {!isRecording && (
-        <Button
-          onClick={onStart}
-          disabled={startDisabled}
-          variant={hasError ? "outline" : "default"}
-          size="lg"
-          className="min-w-[120px]"
-        >
-          {getStartButtonContent()}
-        </Button>
-      )}
+    <div className={`flex items-center gap-4 ${className}`}>
+      {/* Recording Status Indicator */}
+      <RecordingIndicator 
+        status={status} 
+        size="lg" 
+        showText={true}
+        className="flex-shrink-0"
+      />
 
-      {/* Stop Recording Button */}
-      {isRecording && (
-        <Button
-          onClick={onStop}
-          disabled={stopDisabled}
-          variant="destructive"
-          size="lg"
-          className="min-w-[120px]"
-        >
-          {getStopButtonContent()}
-        </Button>
-      )}
+      {/* Control Buttons */}
+      <div className="flex gap-3">
+        {/* Start Recording Button */}
+        {!isRecording && (
+          <Button
+            onClick={onStart}
+            disabled={startDisabled}
+            variant={hasError ? "outline" : "default"}
+            size="lg"
+            className="min-w-[120px]"
+          >
+            {getStartButtonContent()}
+          </Button>
+        )}
+
+        {/* Stop Recording Button */}
+        {isRecording && (
+          <Button
+            onClick={onStop}
+            disabled={stopDisabled}
+            variant="destructive"
+            size="lg"
+            className="min-w-[120px]"
+          >
+            {getStopButtonContent()}
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
