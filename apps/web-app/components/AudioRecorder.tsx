@@ -44,19 +44,67 @@ export default function AudioRecorder({
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
-  // Update state helper
+  // Update state helper with state transition validation
   const updateState = useCallback((updates: Partial<AudioRecorderState>) => {
     setState(prevState => {
       const newState = { ...prevState, ...updates };
       
-      // Notify status change if status changed
-      if (updates.status && updates.status !== prevState.status && onStatusChange) {
-        onStatusChange(updates.status);
+      // Validate state transitions if status is being updated
+      if (updates.status && updates.status !== prevState.status) {
+        const isValidTransition = validateStateTransition(prevState.status, updates.status);
+        if (!isValidTransition) {
+          console.warn(`Invalid state transition: ${prevState.status} -> ${updates.status}`);
+        }
+        
+        // Notify status change
+        if (onStatusChange) {
+          onStatusChange(updates.status);
+        }
       }
       
       return newState;
     });
   }, [onStatusChange]);
+
+  // Validate recording state transitions
+  const validateStateTransition = useCallback((from: RecordingStatus, to: RecordingStatus): boolean => {
+    const validTransitions: Record<RecordingStatus, RecordingStatus[]> = {
+      [RecordingStatus.IDLE]: [
+        RecordingStatus.REQUESTING_PERMISSION,
+        RecordingStatus.RECORDING,
+        RecordingStatus.ERROR
+      ],
+      [RecordingStatus.REQUESTING_PERMISSION]: [
+        RecordingStatus.IDLE,
+        RecordingStatus.RECORDING,
+        RecordingStatus.ERROR
+      ],
+      [RecordingStatus.RECORDING]: [
+        RecordingStatus.PROCESSING,
+        RecordingStatus.PAUSED,
+        RecordingStatus.ERROR
+      ],
+      [RecordingStatus.PAUSED]: [
+        RecordingStatus.RECORDING,
+        RecordingStatus.PROCESSING,
+        RecordingStatus.ERROR
+      ],
+      [RecordingStatus.PROCESSING]: [
+        RecordingStatus.STOPPED,
+        RecordingStatus.ERROR
+      ],
+      [RecordingStatus.STOPPED]: [
+        RecordingStatus.IDLE,
+        RecordingStatus.ERROR
+      ],
+      [RecordingStatus.ERROR]: [
+        RecordingStatus.IDLE,
+        RecordingStatus.REQUESTING_PERMISSION
+      ]
+    };
+
+    return validTransitions[from]?.includes(to) ?? false;
+  }, []);
 
   // Error handling helper
   const handleError = useCallback((errorCode: RecordingErrorCode, message: string, details?: any) => {
@@ -251,60 +299,101 @@ export default function AudioRecorder({
     };
   }, [generateFileName]);
 
-  // Start recording function
+  // Start recording function with enhanced lifecycle management
   const startRecording = useCallback(async (): Promise<boolean> => {
-    // Reset previous state
-    audioChunksRef.current = [];
-    updateState({
-      audioChunks: [],
-      duration: 0,
-      error: null
-    });
-
-    // Request permission if not already granted
-    if (state.hasPermission !== PermissionStatus.GRANTED) {
-      const hasPermission = await requestPermission();
-      if (!hasPermission) {
-        return false;
-      }
-    }
-
-    const stream = mediaStreamRef.current;
-    if (!stream) {
-      handleError(
-        RECORDING_ERROR_CODES.DEVICE_NOT_FOUND,
-        'No media stream available'
-      );
+    // Validate state transition before starting
+    const canStart = validateStateTransition(state.status, RecordingStatus.RECORDING);
+    if (!canStart && state.status !== RecordingStatus.IDLE) {
+      console.warn('Cannot start recording: invalid state transition');
       return false;
     }
 
-    // Create MediaRecorder
-    const mediaRecorder = createMediaRecorder(stream);
-    if (!mediaRecorder) {
+    // Prevent starting if already recording or in invalid state
+    if (state.status === RecordingStatus.RECORDING || 
+        state.status === RecordingStatus.PROCESSING) {
+      console.warn('Cannot start recording: already in progress');
       return false;
     }
-
-    // Create recording session
-    const session: RecordingSession = {
-      id: generateSessionId(),
-      startTime: new Date(),
-      duration: 0,
-      status: RecordingStatus.RECORDING,
-      audioChunks: []
-    };
-
-    // Update state and start recording
-    updateState({
-      status: RecordingStatus.RECORDING,
-      mediaRecorder,
-      session
-    });
 
     try {
+      // Reset previous state and prepare for new recording
+      audioChunksRef.current = [];
+      updateState({
+        audioChunks: [],
+        duration: 0,
+        error: null,
+        status: RecordingStatus.IDLE
+      });
+
+      // Request permission if not already granted
+      if (state.hasPermission !== PermissionStatus.GRANTED) {
+        const hasPermission = await requestPermission();
+        if (!hasPermission) {
+          return false;
+        }
+      }
+
+      const stream = mediaStreamRef.current;
+      if (!stream) {
+        handleError(
+          RECORDING_ERROR_CODES.DEVICE_NOT_FOUND,
+          'No media stream available'
+        );
+        return false;
+      }
+
+      // Verify stream is still active
+      const audioTracks = stream.getAudioTracks();
+      if (audioTracks.length === 0 || audioTracks[0].readyState !== 'live') {
+        handleError(
+          RECORDING_ERROR_CODES.DEVICE_NOT_FOUND,
+          'Audio track is not available or not live'
+        );
+        return false;
+      }
+
+      // Create MediaRecorder
+      const mediaRecorder = createMediaRecorder(stream);
+      if (!mediaRecorder) {
+        return false;
+      }
+
+      // Create recording session with proper lifecycle tracking
+      const session: RecordingSession = {
+        id: generateSessionId(),
+        startTime: new Date(),
+        duration: 0,
+        status: RecordingStatus.RECORDING,
+        audioChunks: []
+      };
+
+      // Update state to recording with proper state transition
+      updateState({
+        status: RecordingStatus.RECORDING,
+        mediaRecorder,
+        session
+      });
+
+      // Start MediaRecorder with data collection interval
       mediaRecorder.start(1000); // Collect data every second
       startTimer();
+      
+      console.log('Recording started successfully', {
+        sessionId: session.id,
+        startTime: session.startTime,
+        mimeType: mediaRecorder.mimeType,
+        stateTransition: `${RecordingStatus.IDLE} -> ${RecordingStatus.RECORDING}`
+      });
+      
       return true;
     } catch (error: any) {
+      // Reset state on failure with proper error handling
+      updateState({
+        status: RecordingStatus.ERROR,
+        mediaRecorder: null,
+        session: null
+      });
+      
       handleError(
         RECORDING_ERROR_CODES.RECORDING_FAILED,
         `Failed to start recording: ${error.message}`,
@@ -314,36 +403,71 @@ export default function AudioRecorder({
     }
   }, [
     state.hasPermission,
+    state.status,
     requestPermission,
     createMediaRecorder,
     generateSessionId,
     updateState,
     startTimer,
-    handleError
+    handleError,
+    validateStateTransition
   ]);
 
-  // Stop recording function
+  // Stop recording function with enhanced lifecycle management
   const stopRecording = useCallback(async (): Promise<void> => {
     const { mediaRecorder, session } = state;
     
+    // Validate state transition before stopping
+    const canStop = validateStateTransition(state.status, RecordingStatus.PROCESSING);
+    if (!canStop) {
+      console.warn('Cannot stop recording: invalid state transition');
+      return;
+    }
+    
+    // Validate that we have an active recording to stop
     if (!mediaRecorder || !session) {
       console.warn('No active recording to stop');
       return;
     }
 
-    updateState({ status: RecordingStatus.PROCESSING });
-    stopTimer();
+    // Prevent stopping if not in recording state
+    if (state.status !== RecordingStatus.RECORDING) {
+      console.warn('Cannot stop recording: not currently recording');
+      return;
+    }
 
     try {
-      // Stop the MediaRecorder
-      if (mediaRecorder.state === 'recording') {
+      // Transition to processing state with proper validation
+      updateState({ status: RecordingStatus.PROCESSING });
+      stopTimer();
+
+      console.log('Stopping recording', {
+        sessionId: session.id,
+        duration: state.duration,
+        chunksCount: audioChunksRef.current.length,
+        stateTransition: `${RecordingStatus.RECORDING} -> ${RecordingStatus.PROCESSING}`
+      });
+
+      // Stop the MediaRecorder if it's still recording
+      if (mediaRecorder.state === 'recording' || mediaRecorder.state === 'paused') {
         mediaRecorder.stop();
       }
 
-      // Stop all tracks in the media stream
+      // Wait a brief moment for final data events to be processed
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Stop all tracks in the media stream to release microphone
       if (mediaStreamRef.current) {
-        mediaStreamRef.current.getTracks().forEach(track => track.stop());
+        mediaStreamRef.current.getTracks().forEach(track => {
+          track.stop();
+          console.log('Stopped audio track:', track.label);
+        });
         mediaStreamRef.current = null;
+      }
+
+      // Validate we have audio data
+      if (audioChunksRef.current.length === 0) {
+        throw new Error('No audio data recorded');
       }
 
       // Create audio blob from chunks
@@ -351,10 +475,15 @@ export default function AudioRecorder({
         type: mediaRecorder.mimeType || 'audio/webm' 
       });
 
+      // Validate blob size
+      if (audioBlob.size === 0) {
+        throw new Error('Generated audio file is empty');
+      }
+
       // Create metadata
       const metadata = createAudioMetadata(audioBlob, state.duration);
 
-      // Update session
+      // Update session with completion details
       const updatedSession: RecordingSession = {
         ...session,
         endTime: new Date(),
@@ -363,24 +492,56 @@ export default function AudioRecorder({
         audioChunks: audioChunksRef.current
       };
 
+      // Update state to stopped with proper state transition
       updateState({
         status: RecordingStatus.STOPPED,
-        session: updatedSession
+        session: updatedSession,
+        mediaRecorder: null
+      });
+
+      console.log('Recording stopped successfully', {
+        sessionId: session.id,
+        duration: state.duration,
+        fileSize: audioBlob.size,
+        mimeType: audioBlob.type,
+        stateTransition: `${RecordingStatus.PROCESSING} -> ${RecordingStatus.STOPPED}`
       });
 
       // Call completion callback
       if (onRecordingComplete) {
-        await onRecordingComplete(audioBlob, metadata.fileName, metadata);
+        try {
+          await onRecordingComplete(audioBlob, metadata.fileName, metadata);
+        } catch (callbackError: any) {
+          console.error('Error in recording completion callback:', callbackError);
+          handleError(
+            RECORDING_ERROR_CODES.UNKNOWN_ERROR,
+            `Recording completed but callback failed: ${callbackError.message}`,
+            callbackError
+          );
+        }
       }
 
     } catch (error: any) {
+      // Clean up state on error with proper error state transition
+      updateState({
+        status: RecordingStatus.ERROR,
+        mediaRecorder: null,
+        session: null
+      });
+
+      // Clean up media stream
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach(track => track.stop());
+        mediaStreamRef.current = null;
+      }
+
       handleError(
         RECORDING_ERROR_CODES.RECORDING_FAILED,
         `Failed to stop recording: ${error.message}`,
         error
       );
     }
-  }, [state, stopTimer, createAudioMetadata, updateState, onRecordingComplete, handleError]);
+  }, [state, stopTimer, createAudioMetadata, updateState, onRecordingComplete, handleError, validateStateTransition]);
 
   // Auto-stop when max duration reached
   useEffect(() => {
@@ -389,6 +550,50 @@ export default function AudioRecorder({
       stopRecording();
     }
   }, [state.status, state.duration, maxDuration, stopRecording]);
+
+  // Reset recording state to idle with proper lifecycle management
+  const resetRecording = useCallback(() => {
+    // Stop any active recording first
+    if (state.status === RecordingStatus.RECORDING) {
+      console.log('Stopping active recording before reset');
+      stopRecording();
+      return;
+    }
+
+    // Validate state transition to idle
+    const canReset = validateStateTransition(state.status, RecordingStatus.IDLE);
+    if (!canReset && state.status !== RecordingStatus.ERROR && state.status !== RecordingStatus.STOPPED) {
+      console.warn('Cannot reset recording: invalid state transition');
+      return;
+    }
+
+    // Clean up resources
+    stopTimer();
+    
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach(track => {
+        track.stop();
+        console.log('Stopped audio track during reset:', track.label);
+      });
+      mediaStreamRef.current = null;
+    }
+
+    // Reset state with proper lifecycle tracking
+    audioChunksRef.current = [];
+    updateState({
+      status: RecordingStatus.IDLE,
+      duration: 0,
+      error: null,
+      mediaRecorder: null,
+      audioChunks: [],
+      session: null
+    });
+
+    console.log('Recording state reset to idle', {
+      previousState: state.status,
+      stateTransition: `${state.status} -> ${RecordingStatus.IDLE}`
+    });
+  }, [state.status, stopRecording, stopTimer, updateState, validateStateTransition]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -407,13 +612,17 @@ export default function AudioRecorder({
     duration: state.duration,
     hasPermission: state.hasPermission,
     error: state.error,
+    session: state.session,
     isRecording: state.status === RecordingStatus.RECORDING,
+    isProcessing: state.status === RecordingStatus.PROCESSING,
     canRecord: state.hasPermission === PermissionStatus.GRANTED && 
                state.status === RecordingStatus.IDLE,
+    canStop: state.status === RecordingStatus.RECORDING,
     
     // Actions
     startRecording,
     stopRecording,
+    resetRecording,
     requestPermission,
     
     // Utilities
@@ -425,6 +634,11 @@ export default function AudioRecorder({
     
     getRemainingTime: (): number => Math.max(0, maxDuration - state.duration),
     
-    getProgress: (): number => Math.min(1, state.duration / maxDuration)
+    getProgress: (): number => Math.min(1, state.duration / maxDuration),
+    
+    // State validation
+    isValidState: (): boolean => {
+      return Object.values(RecordingStatus).includes(state.status);
+    }
   };
 }
