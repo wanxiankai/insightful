@@ -1,142 +1,103 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { v4 as uuidv4 } from "uuid";
+import { useCallback } from "react";
 import { MeetingJob } from "./JobItem";
-import { generateUniqueId } from "@/lib/api-utils";
 import { useLanguage } from "@/contexts/LanguageContext";
-import AudioRecorder from "./AudioRecorder";
 import RecordingInterface from "./RecordingInterface";
-import { RecordingStatus, AudioFileMetadata } from "@/types/recording";
+import { useRecordingLifecycle } from "@/hooks/useRecordingLifecycle";
 
 interface RecordingUploadZoneProps {
   onUploadComplete?: (tempJob: MeetingJob) => Promise<void>;
 }
 
 export default function RecordingUploadZone({ onUploadComplete }: RecordingUploadZoneProps) {
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
   const { t, locale } = useLanguage();
-
-  // 使用AudioRecorder hook
-  const recorder = AudioRecorder({
-    onRecordingComplete: handleRecordingComplete,
-    onError: (error) => {
-      console.error('Recording error:', error);
-      setUploadError(error);
-    },
-    onStatusChange: (status) => {
-      // 清除之前的错误状态
-      if (status === RecordingStatus.RECORDING) {
-        setUploadError(null);
+  
+  // Use the recording lifecycle hook for complete integration
+  const {
+    state,
+    isActive,
+    hasError,
+    isComplete,
+    currentError,
+    progress,
+    isRecording,
+    recordingDuration,
+    recordingStatus,
+    canRecord,
+    canStop,
+    isUploading,
+    uploadProgress,
+    createdJob,
+    startRecording,
+    stopRecording,
+    cancel,
+    reset,
+    formatDuration,
+    getRemainingTime
+  } = useRecordingLifecycle({
+    onJobCreated: async (job) => {
+      console.log('Recording job created:', job.id);
+      if (onUploadComplete) {
+        await onUploadComplete(job);
       }
+    },
+    onComplete: (job) => {
+      console.log('Recording lifecycle completed:', job.id);
+    },
+    onError: (error) => {
+      console.error('Recording lifecycle error:', error);
     }
   });
 
-  // 处理录制完成
-  async function handleRecordingComplete(
-    audioBlob: Blob, 
-    fileName: string, 
-    metadata: AudioFileMetadata
-  ) {
-    setIsUploading(true);
-    setUploadError(null);
-
-    try {
-      // 1. 获取预签名URL
-      const presignedResponse = await fetch('/api/upload', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          filename: fileName,
-          contentType: metadata.mimeType,
-        }),
-      });
-
-      if (!presignedResponse.ok) {
-        const errorText = await presignedResponse.text();
-        throw new Error(`获取上传链接失败: ${presignedResponse.status} - ${errorText}`);
-      }
-
-      const { url: presignedUrl, fileKey, fileUrl } = await presignedResponse.json();
-
-      if (!presignedUrl) {
-        throw new Error('服务器未返回有效的上传链接');
-      }
-
-      // 2. 上传录音文件
-      const uploadResponse = await fetch(presignedUrl, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': metadata.mimeType,
-        },
-        body: audioBlob,
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error(`上传失败: ${uploadResponse.status} - ${uploadResponse.statusText}`);
-      }
-
-      // 3. 创建临时job对象
-      const tempId = generateUniqueId('temp');
-      const tempJob: MeetingJob = {
-        id: tempId,
-        fileName: fileName,
-        status: 'PENDING',
-        createdAt: new Date().toISOString(),
-        fileKey: fileKey,
-        fileUrl: fileUrl,
-      };
-
-      // 4. 调用完成回调
-      if (onUploadComplete) {
-        await onUploadComplete(tempJob);
-      }
-
-      // 5. 重置录制状态
-      recorder.resetRecording();
-
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '上传失败';
-      setUploadError(errorMessage);
-      console.error('Upload error:', error);
-    } finally {
-      setIsUploading(false);
-    }
-  }
-
   // 开始录制
   const handleStartRecording = useCallback(async () => {
-    setUploadError(null);
-    const success = await recorder.startRecording();
-    if (!success) {
-      setUploadError('无法开始录制，请检查麦克风权限');
-    }
-  }, [recorder]);
+    await startRecording();
+  }, [startRecording]);
 
   // 停止录制
   const handleStopRecording = useCallback(async () => {
-    await recorder.stopRecording();
-  }, [recorder]);
+    await stopRecording();
+  }, [stopRecording]);
 
-  // 确定当前状态
-  const currentStatus = isUploading ? RecordingStatus.PROCESSING : recorder.status;
-  const currentError = uploadError || recorder.error;
+  // 取消操作
+  const handleCancel = useCallback(() => {
+    cancel();
+  }, [cancel]);
+
+  // 格式化文件大小
+  const formatFileSize = useCallback((bytes: number): string => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }, []);
+
+  // 格式化上传速度
+  const formatSpeed = useCallback((bytesPerSecond: number): string => {
+    return formatFileSize(bytesPerSecond) + '/s';
+  }, [formatFileSize]);
+
+  // Get current progress details
+  const progressDetails = progress ? {
+    loaded: Math.round((progress.percentage / 100) * 1000000), // Mock values for display
+    total: 1000000,
+    speed: 0
+  } : null;
 
   return (
     <div className="w-full">
       <RecordingInterface
-          status={currentStatus}
-          duration={recorder.duration}
+          status={recordingStatus}
+          duration={recordingDuration}
           error={currentError}
           onStart={handleStartRecording}
           onStop={handleStopRecording}
-          disabled={isUploading}
+          disabled={isActive && !canStop}
         >
           {/* 录制提示和信息 */}
-          {recorder.isRecording && (
+          {isRecording && (
             <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-700">
               <div className="flex items-center justify-between">
                 <div>
@@ -152,7 +113,7 @@ export default function RecordingUploadZone({ onUploadComplete }: RecordingUploa
                     剩余时间
                   </p>
                   <p className="text-sm font-mono font-bold text-red-800 dark:text-red-200">
-                    {recorder.formatDuration(recorder.getRemainingTime())}
+                    {formatDuration(getRemainingTime())}
                   </p>
                 </div>
               </div>
@@ -160,7 +121,7 @@ export default function RecordingUploadZone({ onUploadComplete }: RecordingUploa
           )}
 
           {/* 权限提示 */}
-          {recorder.status === RecordingStatus.REQUESTING_PERMISSION && (
+          {recordingStatus === 'requesting_permission' && (
             <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
               <p className="text-sm text-blue-800 dark:text-blue-200">
                 请在浏览器弹窗中允许访问麦克风权限
@@ -168,12 +129,76 @@ export default function RecordingUploadZone({ onUploadComplete }: RecordingUploa
             </div>
           )}
 
-          {/* 上传进度 */}
-          {isUploading && (
+          {/* 进度显示 */}
+          {progress && (
             <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-700">
-              <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                正在上传录音文件，请稍候...
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                  {progress.phase === 'recording' ? '正在录制' : 
+                   progress.phase === 'uploading' ? '正在上传录音文件' : 
+                   '正在处理录音文件'}
+                </p>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-yellow-800 dark:text-yellow-200">
+                    {Math.round(progress.percentage)}%
+                  </span>
+                  {progress.phase !== 'recording' && (
+                    <button
+                      onClick={handleCancel}
+                      className="text-xs px-2 py-1 bg-yellow-200 dark:bg-yellow-700 text-yellow-800 dark:text-yellow-200 rounded hover:bg-yellow-300 dark:hover:bg-yellow-600 transition-colors"
+                    >
+                      取消
+                    </button>
+                  )}
+                </div>
+              </div>
+              
+              <div className="w-full bg-yellow-200 dark:bg-yellow-700 rounded-full h-2 mb-2">
+                <div 
+                  className="bg-yellow-600 dark:bg-yellow-400 h-2 rounded-full transition-all duration-300 ease-in-out"
+                  style={{ width: `${Math.round(progress.percentage)}%` }}
+                />
+              </div>
+              
+              {/* 详细信息 */}
+              {progressDetails && progress.phase === 'uploading' && (
+                <div className="flex justify-between text-xs text-yellow-600 dark:text-yellow-400">
+                  <span>
+                    {formatFileSize(progressDetails.loaded)} / {formatFileSize(progressDetails.total)}
+                  </span>
+                  {progressDetails.speed && progressDetails.speed > 0 && (
+                    <span>
+                      {formatSpeed(progressDetails.speed)}
+                    </span>
+                  )}
+                </div>
+              )}
+              
+              <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
+                {progress.phase === 'recording' ? '点击停止按钮结束录制' : '请保持网络连接，不要关闭页面'}
               </p>
+            </div>
+          )}
+
+          {/* 完成状态 */}
+          {isComplete && createdJob && (
+            <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-green-800 dark:text-green-200">
+                    录制完成
+                  </p>
+                  <p className="text-xs text-green-600 dark:text-green-400">
+                    任务已创建，正在进行AI分析
+                  </p>
+                </div>
+                <button
+                  onClick={reset}
+                  className="text-xs px-3 py-1 bg-green-200 dark:bg-green-700 text-green-800 dark:text-green-200 rounded hover:bg-green-300 dark:hover:bg-green-600 transition-colors"
+                >
+                  新建录制
+                </button>
+              </div>
             </div>
           )}
         </RecordingInterface>

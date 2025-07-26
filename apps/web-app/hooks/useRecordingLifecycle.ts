@@ -1,271 +1,290 @@
-"use client";
+/**
+ * Recording Lifecycle Hook
+ * Manages the complete lifecycle of a recording from creation to completion
+ */
 
-import { useCallback, useRef } from 'react';
-import { RecordingStatus, PermissionStatus } from '@/types/recording';
+import { useState, useCallback, useRef } from 'react';
+import { useRecordingUpload } from './useRecordingUpload';
+import AudioRecorder from '@/components/AudioRecorder';
+import { RecordingStatus, AudioFileMetadata } from '@/types/recording';
+import { MeetingJob } from '@/components/JobItem';
+import { createTempJob } from '@/lib/recording-upload';
 
 export interface RecordingLifecycleState {
-  status: RecordingStatus;
-  hasPermission: PermissionStatus;
-  duration: number;
-  error: string | null;
+  // Recording state
+  isRecording: boolean;
+  recordingDuration: number;
+  recordingStatus: RecordingStatus;
+  recordingError: string | null;
+  
+  // Upload state
+  isUploading: boolean;
+  uploadProgress: number;
+  uploadError: string | null;
+  
+  // Job state
+  createdJob: MeetingJob | null;
+  
+  // Overall state
+  isActive: boolean; // true if recording or uploading
+  hasError: boolean;
+  isComplete: boolean;
 }
 
-export interface RecordingLifecycleActions {
-  startRecording: () => Promise<boolean>;
-  stopRecording: () => Promise<void>;
-  resetRecording: () => void;
-  validateStateTransition: (from: RecordingStatus, to: RecordingStatus) => boolean;
-}
-
-export interface UseRecordingLifecycleProps {
-  state: RecordingLifecycleState;
-  onStateUpdate: (updates: Partial<RecordingLifecycleState>) => void;
-  onError: (error: string) => void;
+export interface UseRecordingLifecycleOptions {
+  onJobCreated?: (job: MeetingJob) => void;
+  onComplete?: (job: MeetingJob) => void;
+  onError?: (error: string) => void;
   maxDuration?: number;
 }
 
-/**
- * Hook for managing recording lifecycle with proper state transitions
- * This hook provides enhanced lifecycle management for recording operations
- */
-export function useRecordingLifecycle({
-  state,
-  onStateUpdate,
-  onError,
-  maxDuration = 30 * 60 // 30 minutes default
-}: UseRecordingLifecycleProps): RecordingLifecycleActions {
-  
-  const lifecycleRef = useRef({
-    isTransitioning: false,
-    lastTransition: null as { from: RecordingStatus; to: RecordingStatus; timestamp: number } | null
+export function useRecordingLifecycle(options: UseRecordingLifecycleOptions = {}) {
+  const {
+    onJobCreated,
+    onComplete,
+    onError,
+    maxDuration = 30 * 60 // 30 minutes default
+  } = options;
+
+  const [state, setState] = useState<RecordingLifecycleState>({
+    isRecording: false,
+    recordingDuration: 0,
+    recordingStatus: RecordingStatus.IDLE,
+    recordingError: null,
+    isUploading: false,
+    uploadProgress: 0,
+    uploadError: null,
+    createdJob: null,
+    isActive: false,
+    hasError: false,
+    isComplete: false
   });
 
-  /**
-   * Validate recording state transitions according to business rules
-   * Ensures only valid state transitions are allowed
-   */
-  const validateStateTransition = useCallback((from: RecordingStatus, to: RecordingStatus): boolean => {
-    const validTransitions: Record<RecordingStatus, RecordingStatus[]> = {
-      [RecordingStatus.IDLE]: [
-        RecordingStatus.REQUESTING_PERMISSION,
-        RecordingStatus.RECORDING,
-        RecordingStatus.ERROR
-      ],
-      [RecordingStatus.REQUESTING_PERMISSION]: [
-        RecordingStatus.IDLE,
-        RecordingStatus.RECORDING,
-        RecordingStatus.ERROR
-      ],
-      [RecordingStatus.RECORDING]: [
-        RecordingStatus.PROCESSING,
-        RecordingStatus.PAUSED,
-        RecordingStatus.ERROR,
-        RecordingStatus.STOPPED // Direct transition for immediate stop
-      ],
-      [RecordingStatus.PAUSED]: [
-        RecordingStatus.RECORDING,
-        RecordingStatus.PROCESSING,
-        RecordingStatus.ERROR
-      ],
-      [RecordingStatus.PROCESSING]: [
-        RecordingStatus.STOPPED,
-        RecordingStatus.ERROR
-      ],
-      [RecordingStatus.STOPPED]: [
-        RecordingStatus.IDLE,
-        RecordingStatus.ERROR
-      ],
-      [RecordingStatus.ERROR]: [
-        RecordingStatus.IDLE,
-        RecordingStatus.REQUESTING_PERMISSION
-      ]
-    };
+  // Use the recording upload hook
+  const {
+    uploadState,
+    isUploading,
+    uploadProgress,
+    uploadError,
+    createRecordingCompletionHandler
+  } = useRecordingUpload({
+    maxRetries: 3,
+    onUploadStart: () => {
+      setState(prev => ({
+        ...prev,
+        isUploading: true,
+        uploadProgress: 0,
+        uploadError: null,
+        isActive: true
+      }));
+    },
+    onUploadProgress: (progress) => {
+      setState(prev => ({
+        ...prev,
+        uploadProgress: progress.percentage
+      }));
+    },
+    onUploadComplete: (result) => {
+      if (result.success && result.jobId && result.fileKey && result.fileUrl) {
+        const job = createTempJob(
+          result.jobId,
+          result.fileKey.split('/').pop() || 'recording.webm',
+          result.fileKey,
+          result.fileUrl
+        );
 
-    const isValid = validTransitions[from]?.includes(to) ?? false;
+        setState(prev => ({
+          ...prev,
+          isUploading: false,
+          createdJob: job,
+          isActive: false,
+          isComplete: true
+        }));
+
+        onJobCreated?.(job);
+        onComplete?.(job);
+      } else {
+        const error = result.error || 'Upload failed';
+        setState(prev => ({
+          ...prev,
+          isUploading: false,
+          uploadError: error,
+          isActive: false,
+          hasError: true
+        }));
+        onError?.(error);
+      }
+    },
+    onUploadError: (error) => {
+      setState(prev => ({
+        ...prev,
+        uploadError: error,
+        hasError: true
+      }));
+      onError?.(error);
+    }
+  });
+
+  // Create the audio recorder with integrated lifecycle management
+  const recorder = AudioRecorder({
+    maxDuration,
+    onRecordingComplete: async (audioBlob, fileName, metadata) => {
+      await createRecordingCompletionHandler()(audioBlob, fileName, metadata);
+    },
+    onError: (error) => {
+      setState(prev => ({
+        ...prev,
+        recordingError: error,
+        isActive: false,
+        hasError: true
+      }));
+      onError?.(error);
+    },
+    onStatusChange: (status) => {
+      setState(prev => ({
+        ...prev,
+        recordingStatus: status,
+        isRecording: status === RecordingStatus.RECORDING,
+        recordingDuration: recorder.duration,
+        isActive: status === RecordingStatus.RECORDING || status === RecordingStatus.PROCESSING || prev.isUploading
+      }));
+    }
+  });
+
+  // Start recording
+  const startRecording = useCallback(async () => {
+    // Reset previous state
+    setState(prev => ({
+      ...prev,
+      recordingError: null,
+      uploadError: null,
+      createdJob: null,
+      hasError: false,
+      isComplete: false
+    }));
+
+    const success = await recorder.startRecording();
+    if (!success) {
+      setState(prev => ({
+        ...prev,
+        hasError: true,
+        recordingError: 'Failed to start recording'
+      }));
+      onError?.('Failed to start recording');
+    }
+  }, [recorder, onError]);
+
+  // Stop recording
+  const stopRecording = useCallback(async () => {
+    await recorder.stopRecording();
+  }, [recorder]);
+
+  // Cancel the entire process
+  const cancel = useCallback(() => {
+    if (state.isRecording) {
+      recorder.resetRecording();
+    }
     
-    if (!isValid) {
-      console.warn(`Invalid state transition attempted: ${from} -> ${to}`);
-    } else {
-      // Track successful transitions for debugging
-      lifecycleRef.current.lastTransition = {
-        from,
-        to,
-        timestamp: Date.now()
+    // Reset state
+    setState({
+      isRecording: false,
+      recordingDuration: 0,
+      recordingStatus: RecordingStatus.IDLE,
+      recordingError: null,
+      isUploading: false,
+      uploadProgress: 0,
+      uploadError: null,
+      createdJob: null,
+      isActive: false,
+      hasError: false,
+      isComplete: false
+    });
+  }, [state.isRecording, recorder]);
+
+  // Reset to initial state
+  const reset = useCallback(() => {
+    recorder.resetRecording();
+    setState({
+      isRecording: false,
+      recordingDuration: 0,
+      recordingStatus: RecordingStatus.IDLE,
+      recordingError: null,
+      isUploading: false,
+      uploadProgress: 0,
+      uploadError: null,
+      createdJob: null,
+      isActive: false,
+      hasError: false,
+      isComplete: false
+    });
+  }, [recorder]);
+
+  // Get current error message
+  const getCurrentError = useCallback(() => {
+    return state.recordingError || state.uploadError || null;
+  }, [state.recordingError, state.uploadError]);
+
+  // Get progress information
+  const getProgress = useCallback(() => {
+    if (state.isRecording) {
+      return {
+        phase: 'recording' as const,
+        percentage: recorder.getProgress() * 100,
+        message: 'Recording in progress...'
+      };
+    } else if (state.isUploading) {
+      return {
+        phase: 'uploading' as const,
+        percentage: state.uploadProgress,
+        message: 'Uploading recording...'
+      };
+    } else if (state.recordingStatus === RecordingStatus.PROCESSING) {
+      return {
+        phase: 'processing' as const,
+        percentage: 95,
+        message: 'Processing recording...'
       };
     }
     
-    return isValid;
-  }, []);
-
-  /**
-   * Safely update recording state with transition validation
-   */
-  const updateStateWithValidation = useCallback((updates: Partial<RecordingLifecycleState>) => {
-    if (updates.status && updates.status !== state.status) {
-      const isValidTransition = validateStateTransition(state.status, updates.status);
-      if (!isValidTransition) {
-        onError(`Invalid state transition: ${state.status} -> ${updates.status}`);
-        return;
-      }
-    }
-    
-    onStateUpdate(updates);
-  }, [state.status, validateStateTransition, onStateUpdate, onError]);
-
-  /**
-   * Enhanced start recording with proper lifecycle management
-   * Handles permission requests, state validation, and error recovery
-   */
-  const startRecording = useCallback(async (): Promise<boolean> => {
-    // Prevent concurrent start operations
-    if (lifecycleRef.current.isTransitioning) {
-      console.warn('Recording lifecycle transition already in progress');
-      return false;
-    }
-
-    // Validate current state allows starting
-    if (state.status === RecordingStatus.RECORDING || 
-        state.status === RecordingStatus.PROCESSING) {
-      console.warn('Cannot start recording: already in progress');
-      return false;
-    }
-
-    lifecycleRef.current.isTransitioning = true;
-
-    try {
-      // Clear any previous errors
-      if (state.error) {
-        updateStateWithValidation({ error: null });
-      }
-
-      // Reset duration for new recording
-      updateStateWithValidation({ duration: 0 });
-
-      // Check if we need to request permission
-      if (state.hasPermission !== PermissionStatus.GRANTED) {
-        updateStateWithValidation({ status: RecordingStatus.REQUESTING_PERMISSION });
-        
-        // Permission request would be handled by the parent component
-        // This hook focuses on lifecycle management
-        console.log('Permission request required before starting recording');
-        return false;
-      }
-
-      // Transition to recording state
-      updateStateWithValidation({ status: RecordingStatus.RECORDING });
-      
-      console.log('Recording lifecycle: Started successfully', {
-        timestamp: new Date().toISOString(),
-        maxDuration,
-        previousState: state.status
-      });
-
-      return true;
-
-    } catch (error: any) {
-      updateStateWithValidation({ 
-        status: RecordingStatus.ERROR,
-        error: `Failed to start recording: ${error.message}`
-      });
-      onError(`Recording start failed: ${error.message}`);
-      return false;
-    } finally {
-      lifecycleRef.current.isTransitioning = false;
-    }
-  }, [
-    state.status,
-    state.error,
-    state.hasPermission,
-    maxDuration,
-    updateStateWithValidation,
-    onError
-  ]);
-
-  /**
-   * Enhanced stop recording with proper lifecycle management
-   * Handles graceful shutdown, data preservation, and error recovery
-   */
-  const stopRecording = useCallback(async (): Promise<void> => {
-    // Prevent concurrent stop operations
-    if (lifecycleRef.current.isTransitioning) {
-      console.warn('Recording lifecycle transition already in progress');
-      return;
-    }
-
-    // Validate current state allows stopping
-    if (state.status !== RecordingStatus.RECORDING) {
-      console.warn('Cannot stop recording: not currently recording');
-      return;
-    }
-
-    lifecycleRef.current.isTransitioning = true;
-
-    try {
-      // Transition to processing state immediately
-      updateStateWithValidation({ status: RecordingStatus.PROCESSING });
-
-      console.log('Recording lifecycle: Stopping recording', {
-        timestamp: new Date().toISOString(),
-        duration: state.duration,
-        previousState: state.status
-      });
-
-      // The actual MediaRecorder stopping would be handled by the parent component
-      // This hook focuses on lifecycle state management
-      
-      // After processing is complete, transition to stopped
-      // This would typically be called by the parent after audio processing
-      setTimeout(() => {
-        updateStateWithValidation({ status: RecordingStatus.STOPPED });
-        console.log('Recording lifecycle: Stopped successfully');
-      }, 100);
-
-    } catch (error: any) {
-      updateStateWithValidation({ 
-        status: RecordingStatus.ERROR,
-        error: `Failed to stop recording: ${error.message}`
-      });
-      onError(`Recording stop failed: ${error.message}`);
-    } finally {
-      lifecycleRef.current.isTransitioning = false;
-    }
-  }, [
-    state.status,
-    state.duration,
-    updateStateWithValidation,
-    onError
-  ]);
-
-  /**
-   * Reset recording state to idle with proper cleanup
-   * Ensures all resources are properly released
-   */
-  const resetRecording = useCallback(() => {
-    // If currently recording, stop first
-    if (state.status === RecordingStatus.RECORDING) {
-      console.log('Recording lifecycle: Stopping active recording before reset');
-      stopRecording();
-      return;
-    }
-
-    // Reset to initial state
-    updateStateWithValidation({
-      status: RecordingStatus.IDLE,
-      duration: 0,
-      error: null
-    });
-
-    // Clear lifecycle tracking
-    lifecycleRef.current.isTransitioning = false;
-    lifecycleRef.current.lastTransition = null;
-
-    console.log('Recording lifecycle: Reset to idle state');
-  }, [state.status, stopRecording, updateStateWithValidation]);
+    return null;
+  }, [state.isRecording, state.isUploading, state.recordingStatus, state.uploadProgress, recorder]);
 
   return {
+    // State
+    state,
+    
+    // Computed state
+    isActive: state.isActive,
+    hasError: state.hasError,
+    isComplete: state.isComplete,
+    currentError: getCurrentError(),
+    progress: getProgress(),
+    
+    // Recording state
+    isRecording: state.isRecording,
+    recordingDuration: recorder.duration,
+    recordingStatus: state.recordingStatus,
+    canRecord: recorder.canRecord,
+    canStop: recorder.canStop,
+    
+    // Upload state
+    isUploading: state.isUploading,
+    uploadProgress: state.uploadProgress,
+    
+    // Job state
+    createdJob: state.createdJob,
+    
+    // Actions
     startRecording,
     stopRecording,
-    resetRecording,
-    validateStateTransition
+    cancel,
+    reset,
+    
+    // Recorder utilities
+    formatDuration: recorder.formatDuration,
+    getRemainingTime: recorder.getRemainingTime,
+    
+    // Recorder instance (for advanced usage)
+    recorder
   };
 }

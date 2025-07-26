@@ -437,23 +437,25 @@ export default function AudioRecorder({
       const audioTracks = stream.getAudioTracks();
       if (audioTracks.length > 0) {
         const track = audioTracks[0];
-        const settings = track.getSettings();
-        const capabilities = track.getCapabilities();
+        if (track) {
+          const settings = track.getSettings();
+          const capabilities = track.getCapabilities();
         
-        metadata.sampleRate = settings.sampleRate;
-        metadata.channelCount = settings.channelCount;
-        metadata.echoCancellation = settings.echoCancellation;
-        metadata.noiseSuppression = settings.noiseSuppression;
-        metadata.autoGainControl = settings.autoGainControl;
-        
-        // Add capability information
-        if (capabilities) {
-          metadata.sampleRateRange = capabilities.sampleRate;
-          metadata.channelCountRange = capabilities.channelCount;
+          metadata.sampleRate = settings.sampleRate;
+          metadata.channelCount = settings.channelCount;
+          metadata.echoCancellation = settings.echoCancellation;
+          metadata.noiseSuppression = settings.noiseSuppression;
+          metadata.autoGainControl = settings.autoGainControl;
+          
+          // Add capability information
+          if (capabilities) {
+            metadata.sampleRateRange = capabilities.sampleRate;
+            metadata.channelCountRange = capabilities.channelCount;
+          }
+          
+          metadata.trackLabel = track.label;
+          metadata.trackId = track.id;
         }
-        
-        metadata.trackLabel = track.label;
-        metadata.trackId = track.id;
       }
       
       // Get MediaRecorder information
@@ -621,7 +623,7 @@ export default function AudioRecorder({
 
       // Verify stream is still active
       const audioTracks = stream.getAudioTracks();
-      if (audioTracks.length === 0 || audioTracks[0].readyState !== 'live') {
+      if (audioTracks.length === 0 || !audioTracks[0] || audioTracks[0].readyState !== 'live') {
         handleError(
           RECORDING_ERROR_CODES.DEVICE_NOT_FOUND,
           'Audio track is not available or not live'

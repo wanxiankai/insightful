@@ -129,7 +129,7 @@ export function PermissionHandler({
 
   // Render permission denied or error UI
   if (hasPermission === PermissionStatus.DENIED || error) {
-    const guidance = getErrorGuidance(error);
+    const guidance = getErrorGuidance(error || null);
     
     if (!guidance) {
       return null;

@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import JobList, { JobListRef } from "./JobList";
 import UploadZone from "./UploadZone";
+import RecordingUploadZone from "./RecordingUploadZone";
 import { MeetingJob } from "./JobItem";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -67,9 +68,18 @@ export default function ClientWrapper({ initialJobs }: ClientWrapperProps) {
     createJobWithRetry();
   };
 
+  // Handle recording upload completion
+  const handleRecordingUploadComplete = async (tempJob: MeetingJob) => {
+    // Add optimistic update immediately
+    jobListRef.current?.addOptimisticJob(tempJob);
+    
+    console.log('Recording upload completed, job added to list:', tempJob.id);
+  };
+
   return (
     <>
       <UploadZone onUploadComplete={handleUploadComplete} />
+      <RecordingUploadZone onUploadComplete={handleRecordingUploadComplete} />
       <div className="w-full max-w-2xl">
         <JobList ref={jobListRef} initialJobs={initialJobs} />
       </div>
