@@ -51,6 +51,7 @@ export default function AudioRecorder({
   const networkCleanupRef = useRef<(() => void) | null>(null);
   const deviceCleanupRef = useRef<(() => void) | null>(null);
   const lastSaveTimeRef = useRef<number>(0);
+  const isStoppingRef = useRef<boolean>(false); // 防止重复停止录制
 
   // Update state helper with state transition validation
   const updateState = useCallback((updates: Partial<AudioRecorderState>) => {
@@ -877,6 +878,12 @@ export default function AudioRecorder({
 
   // Stop recording function with enhanced lifecycle management
   const stopRecording = useCallback(async (): Promise<void> => {
+    // 防止重复调用
+    if (isStoppingRef.current) {
+      console.warn('Stop recording already in progress, ignoring duplicate call');
+      return;
+    }
+    
     const { mediaRecorder, session } = state;
     
     // Validate state transition before stopping
@@ -897,6 +904,9 @@ export default function AudioRecorder({
       console.warn('Cannot stop recording: not currently recording');
       return;
     }
+
+    // 设置停止标志
+    isStoppingRef.current = true;
 
     try {
       // Transition to processing state with proper validation
@@ -1011,6 +1021,9 @@ export default function AudioRecorder({
         `Failed to stop recording: ${error.message}`,
         error
       );
+    } finally {
+      // 重置停止标志
+      isStoppingRef.current = false;
     }
   }, [state, stopTimer, createAudioMetadata, updateState, onRecordingComplete, handleError, validateStateTransition]);
 

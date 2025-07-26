@@ -20,7 +20,22 @@ export default function ClientWrapper({ initialJobs }: ClientWrapperProps) {
     // 立即添加乐观更新
     jobListRef.current?.addOptimisticJob(tempJob);
 
-    // 自动重试函数
+    console.log('Upload completed, job added to list:', tempJob.id);
+
+    // 检查是否是录制上传（录制上传的 job 已经在后端创建了）
+    const isRecordingUpload = tempJob.fileName?.startsWith('recording_') ||
+      tempJob.fileKey?.includes('recording_');
+
+    if (isRecordingUpload) {
+      console.log('Recording upload detected, job already created in backend');
+      // 录制上传的 job 已经在后端创建，只需要刷新列表
+      setTimeout(() => {
+        jobListRef.current?.refreshJobs();
+      }, 2000); // 给后端一些时间处理
+      return;
+    }
+
+    // 自动重试函数 - 只用于常规文件上传
     const createJobWithRetry = async (retryCount = 0): Promise<void> => {
       const maxRetries = 3;
 
@@ -69,12 +84,12 @@ export default function ClientWrapper({ initialJobs }: ClientWrapperProps) {
   };
 
   // Handle recording upload completion
-  const handleRecordingUploadComplete = async (tempJob: MeetingJob) => {
-    // Add optimistic update immediately
-    jobListRef.current?.addOptimisticJob(tempJob);
+  // const handleRecordingUploadComplete = async (tempJob: MeetingJob) => {
+  //   // Add optimistic update immediately
+  //   jobListRef.current?.addOptimisticJob(tempJob);
 
-    console.log('Recording upload completed, job added to list:', tempJob.id);
-  };
+  //   console.log('Recording upload completed, job added to list:', tempJob.id);
+  // };
 
   return (
     <>

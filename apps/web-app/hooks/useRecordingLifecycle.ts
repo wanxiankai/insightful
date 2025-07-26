@@ -86,9 +86,17 @@ export function useRecordingLifecycle(options: UseRecordingLifecycleOptions = {}
     },
     onUploadComplete: (result) => {
       if (result.success && result.jobId && result.fileKey && result.fileUrl) {
+        // 从 fileKey 中提取文件名，但保持原始录制文件名的格式
+        let displayFileName = result.fileKey.split('/').pop() || 'recording.webm';
+        
+        // 如果文件名包含时间戳前缀（格式：timestamp_recording_...），移除时间戳前缀
+        if (displayFileName.includes('_recording_')) {
+          displayFileName = displayFileName.substring(displayFileName.indexOf('_recording_') + 1);
+        }
+        
         const job = createTempJob(
           result.jobId,
-          result.fileKey.split('/').pop() || 'recording.webm',
+          displayFileName,
           result.fileKey,
           result.fileUrl
         );
@@ -101,8 +109,11 @@ export function useRecordingLifecycle(options: UseRecordingLifecycleOptions = {}
           isComplete: true
         }));
 
+        // 只调用 onJobCreated，不调用 onComplete
+        // onComplete 应该在 job 真正完成处理后调用
         onJobCreated?.(job);
-        onComplete?.(job);
+        // 注释掉这行，避免重复处理
+        // onComplete?.(job);
       } else {
         const error = result.error || 'Upload failed';
         setState(prev => ({

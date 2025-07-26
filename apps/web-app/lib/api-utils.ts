@@ -1,8 +1,15 @@
 import { NextResponse } from 'next/server';
 
 // 生成唯一ID的工具函数
+let idCounter = 0;
 export function generateUniqueId(prefix: string = 'id'): string {
-  return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  // 使用时间戳 + 计数器 + 随机字符串确保唯一性
+  const timestamp = Date.now();
+  const counter = (++idCounter).toString(36);
+  const random = Math.random().toString(36).substr(2, 9);
+  const processId = typeof process !== 'undefined' && process.pid ? process.pid.toString(36) : '';
+  
+  return `${prefix}_${timestamp}_${counter}_${random}${processId ? '_' + processId : ''}`;
 }
 
 // API错误响应工具

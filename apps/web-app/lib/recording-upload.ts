@@ -104,34 +104,59 @@ export async function uploadRecordedAudio(
     // Step 3: Generate temporary ID for optimistic updates
     const tempId = generateUniqueId('job');
 
-    // Step 4: Complete upload and create job
-    const completeResponse = await fetch('/api/upload/complete', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        fileKey,
-        fileName,
-        fileUrl,
-        tempId,
-      }),
-      signal,
-    });
-
+    // Step 4: Complete upload and create job with retry mechanism
     let jobId = tempId;
+    let retryCount = 0;
+    const maxRetries = 3;
+    
+    while (retryCount < maxRetries) {
+      try {
+        const completeResponse = await fetch('/api/upload/complete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            fileKey,
+            fileName,
+            fileUrl,
+            tempId: retryCount === 0 ? tempId : generateUniqueId('job'), // 重试时生成新ID
+          }),
+          signal,
+        });
 
-    if (!completeResponse.ok) {
-      const errorData = await completeResponse.json().catch(() => ({ error: 'Unknown error' }));
-      console.error('Upload complete API failed:', errorData);
-      
-      // Don't throw error here as file upload succeeded
-      // The job creation failure is not critical for user experience
-      console.warn('File uploaded successfully but job creation may have failed');
-    } else {
-      const completeData = await completeResponse.json();
-      jobId = completeData.jobId || tempId;
-      console.log('Job created successfully:', jobId);
+        if (!completeResponse.ok) {
+          const errorData = await completeResponse.json().catch(() => ({ error: 'Unknown error' }));
+          console.error('Upload complete API failed:', errorData);
+          
+          // 如果是ID冲突错误，重试
+          if (errorData.details && errorData.details.includes('Unique constraint failed')) {
+            console.log(`ID conflict detected, retrying with new ID (attempt ${retryCount + 1})`);
+            retryCount++;
+            continue;
+          }
+          
+          // 其他错误，不重试
+          console.warn('File uploaded successfully but job creation failed');
+          break;
+        } else {
+          const completeData = await completeResponse.json();
+          jobId = completeData.jobId || tempId;
+          console.log('Job created successfully:', jobId);
+          break; // 成功，退出循环
+        }
+      } catch (error) {
+        console.error('Error in upload complete request:', error);
+        retryCount++;
+        
+        if (retryCount >= maxRetries) {
+          console.warn('Max retries reached for job creation');
+          break;
+        }
+        
+        // 等待一段时间后重试
+        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+      }
     }
 
     onProgress?.({ loaded: 100, total: 100, percentage: 100 });
@@ -297,7 +322,7 @@ export async function uploadWithRetry(
         await new Promise(resolve => setTimeout(resolve, delay));
       }
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       lastError = error.message || 'Upload failed';
       
       if (attempt < maxRetries) {

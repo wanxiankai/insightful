@@ -39,6 +39,7 @@ export function useRecordingUpload(options: UseRecordingUploadOptions = {}) {
   });
 
   const abortControllerRef = useRef<AbortController | null>(null);
+  const isProcessingRef = useRef<boolean>(false); // 在 hook 级别防止重复调用
 
   // Reset upload state
   const resetUploadState = useCallback(() => {
@@ -144,21 +145,33 @@ export function useRecordingUpload(options: UseRecordingUploadOptions = {}) {
   // Create recording completion handler that automatically uploads
   const createRecordingCompletionHandler = useCallback(() => {
     return async (audioBlob: Blob, fileName: string, metadata: AudioFileMetadata) => {
-      console.log('Recording completed, starting upload:', {
-        fileName,
-        fileSize: audioBlob.size,
-        duration: metadata.duration
-      });
-
-      const result = await uploadRecording(audioBlob, fileName, metadata);
-      
-      if (result.success) {
-        console.log('Recording uploaded successfully:', result);
-      } else {
-        console.error('Recording upload failed:', result.error);
+      // 在 hook 级别防止重复调用
+      if (isProcessingRef.current) {
+        console.warn('Recording completion handler already processing, ignoring duplicate call');
+        return { success: false, error: 'Already processing' };
       }
+      
+      isProcessingRef.current = true;
+      
+      try {
+        console.log('Recording completed, starting upload:', {
+          fileName,
+          fileSize: audioBlob.size,
+          duration: metadata.duration
+        });
 
-      return result;
+        const result = await uploadRecording(audioBlob, fileName, metadata);
+        
+        if (result.success) {
+          console.log('Recording uploaded successfully:', result);
+        } else {
+          console.error('Recording upload failed:', result.error);
+        }
+
+        return result;
+      } finally {
+        isProcessingRef.current = false;
+      }
     };
   }, [uploadRecording]);
 

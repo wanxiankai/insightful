@@ -38,6 +38,8 @@ export default function RecordingUploadZone({ onUploadComplete }: RecordingUploa
   } = useRecordingLifecycle({
     onJobCreated: async (job) => {
       console.log('Recording job created:', job.id);
+      // 录制流程已经在后端创建了 job，不需要再通过 onUploadComplete 创建
+      // 这里只需要通知 UI 更新即可
       if (onUploadComplete) {
         await onUploadComplete(job);
       }
