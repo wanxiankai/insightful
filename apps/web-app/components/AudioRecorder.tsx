@@ -339,7 +339,7 @@ export default function AudioRecorder({
     }
 
     // Optimized state update - use functional update to avoid unnecessary re-renders
-    updateState(prevState => ({
+    setState((prevState: AudioRecorderState) => ({
       ...prevState,
       audioChunks: [...audioChunksRef.current]
     }));

@@ -174,7 +174,7 @@ export async function uploadRecordedAudio(
       fileUrl,
     };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Upload failed';
     
     console.error('Upload failed:', errorMessage, error);
@@ -323,7 +323,7 @@ export async function uploadWithRetry(
       }
       
     } catch (error: unknown) {
-      lastError = error.message || 'Upload failed';
+      lastError = error instanceof Error ? error.message : 'Upload failed';
       
       if (attempt < maxRetries) {
         const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
