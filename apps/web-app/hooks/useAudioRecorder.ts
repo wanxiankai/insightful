@@ -11,6 +11,8 @@ import {
   RECORDING_ERROR_CODES,
   RecordingErrorCode
 } from '@/types/recording';
+import { recordingErrorRecovery } from '@/lib/recording-error-recovery';
+import { browserCompatibility } from '@/lib/browser-compatibility';
 
 // Default configuration for MediaRecorder
 const DEFAULT_MEDIA_RECORDER_CONFIG: MediaRecorderConfig = {
@@ -109,27 +111,25 @@ export function useAudioRecorder({
     });
   }, [updateState, state.status]);
 
-  // Check browser support for MediaRecorder
+  // Check browser support with comprehensive compatibility checking
   const checkBrowserSupport = useCallback((): boolean => {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    const compatibility = browserCompatibility.checkCompatibility();
+    
+    if (!compatibility.isPartiallySupported) {
+      const message = browserCompatibility.getUnsupportedBrowserMessage();
       handleError(
         RECORDING_ERROR_CODES.UNSUPPORTED_BROWSER,
-        'MediaDevices API not supported in this browser'
+        message
       );
       return false;
     }
 
-    if (!window.MediaRecorder) {
-      handleError(
-        RECORDING_ERROR_CODES.UNSUPPORTED_BROWSER,
-        'MediaRecorder API not supported in this browser'
-      );
-      return false;
-    }
-
-    // Check if the preferred mime type is supported
-    if (!MediaRecorder.isTypeSupported(DEFAULT_MEDIA_RECORDER_CONFIG.mimeType)) {
-      console.warn('Preferred mime type not supported, will use browser default');
+    // Log warnings for partial support
+    if (!compatibility.isFullySupported) {
+      console.warn('Browser has partial recording support:', {
+        missingFeatures: compatibility.missingFeatures,
+        warnings: compatibility.browserInfo.warnings
+      });
     }
 
     return true;
@@ -192,10 +192,9 @@ export function useAudioRecorder({
     try {
       const config: MediaRecorderOptions = {};
       
-      // Use preferred mime type if supported
-      if (MediaRecorder.isTypeSupported(DEFAULT_MEDIA_RECORDER_CONFIG.mimeType)) {
-        config.mimeType = DEFAULT_MEDIA_RECORDER_CONFIG.mimeType;
-      }
+      // Use best supported mime type
+      const bestMimeType = browserCompatibility.getBestSupportedMimeType();
+      config.mimeType = bestMimeType;
       
       if (DEFAULT_MEDIA_RECORDER_CONFIG.audioBitsPerSecond) {
         config.audioBitsPerSecond = DEFAULT_MEDIA_RECORDER_CONFIG.audioBitsPerSecond;
@@ -466,6 +465,16 @@ export function useAudioRecorder({
     formatDuration,
     getRemainingTime,
     getProgress,
-    clearError
+    clearError,
+    
+    // Browser compatibility
+    getBrowserCompatibility: () => browserCompatibility.checkCompatibility(),
+    getSupportedMimeTypes: () => browserCompatibility.getSupportedMimeTypes(),
+    getBestMimeType: () => browserCompatibility.getBestSupportedMimeType(),
+    
+    // Recovery functions
+    hasRecoverableData: () => recordingErrorRecovery.canRecover(),
+    getRecoverySuggestions: (errorCode?: string) => recordingErrorRecovery.getRecoverySuggestions(errorCode || error || ''),
+    clearRecoveryData: () => recordingErrorRecovery.clearRecoveryData()
   };
 }

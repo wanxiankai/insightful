@@ -67,9 +67,26 @@ export interface MediaRecorderConfig {
 }
 
 export interface RecordingError {
-  code: string;
+  code: RecordingErrorCode;
   message: string;
   details?: any;
+  timestamp?: string;
+  recoverable?: boolean;
+}
+
+export interface RecordingRecoveryState {
+  hasRecoverableData: boolean;
+  audioChunks: Blob[];
+  duration: number;
+  sessionId: string;
+  timestamp: string;
+}
+
+export interface NetworkErrorInfo {
+  isOnline: boolean;
+  lastOnlineTime?: string;
+  retryCount: number;
+  nextRetryTime?: string;
 }
 
 // Error codes for different recording scenarios
@@ -77,10 +94,13 @@ export const RECORDING_ERROR_CODES = {
   PERMISSION_DENIED: 'PERMISSION_DENIED',
   DEVICE_NOT_FOUND: 'DEVICE_NOT_FOUND',
   DEVICE_BUSY: 'DEVICE_BUSY',
+  DEVICE_DISCONNECTED: 'DEVICE_DISCONNECTED',
   RECORDING_FAILED: 'RECORDING_FAILED',
+  RECORDING_INTERRUPTED: 'RECORDING_INTERRUPTED',
   UNSUPPORTED_BROWSER: 'UNSUPPORTED_BROWSER',
   NETWORK_ERROR: 'NETWORK_ERROR',
   STORAGE_FULL: 'STORAGE_FULL',
+  MEMORY_LIMIT_EXCEEDED: 'MEMORY_LIMIT_EXCEEDED',
   UNKNOWN_ERROR: 'UNKNOWN_ERROR'
 } as const;
 

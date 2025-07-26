@@ -10,8 +10,11 @@ import {
   AudioFileMetadata,
   MediaRecorderConfig,
   RECORDING_ERROR_CODES,
-  RecordingErrorCode
+  RecordingErrorCode,
+  RecordingRecoveryState
 } from '@/types/recording';
+import { recordingErrorRecovery } from '@/lib/recording-error-recovery';
+import { browserCompatibility } from '@/lib/browser-compatibility';
 
 // Default configuration for MediaRecorder
 const DEFAULT_MEDIA_RECORDER_CONFIG: MediaRecorderConfig = {
@@ -43,6 +46,9 @@ export default function AudioRecorder({
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const networkCleanupRef = useRef<(() => void) | null>(null);
+  const deviceCleanupRef = useRef<(() => void) | null>(null);
+  const lastSaveTimeRef = useRef<number>(0);
 
   // Update state helper with state transition validation
   const updateState = useCallback((updates: Partial<AudioRecorderState>) => {
@@ -106,10 +112,23 @@ export default function AudioRecorder({
     return validTransitions[from]?.includes(to) ?? false;
   }, []);
 
-  // Error handling helper
+  // Error handling helper with recovery support
   const handleError = useCallback((errorCode: RecordingErrorCode, message: string, details?: any) => {
     const errorMessage = `${errorCode}: ${message}`;
     console.error('AudioRecorder Error:', errorMessage, details);
+    
+    // Save recovery data if recording was in progress
+    if (state.status === RecordingStatus.RECORDING && state.session) {
+      const saved = recordingErrorRecovery.saveRecoveryData(
+        audioChunksRef.current,
+        state.duration,
+        state.session.id
+      );
+      
+      if (saved) {
+        console.log('Recording data saved for recovery');
+      }
+    }
     
     updateState({
       status: RecordingStatus.ERROR,
@@ -119,29 +138,40 @@ export default function AudioRecorder({
     if (onError) {
       onError(errorMessage);
     }
-  }, [updateState, onError]);
+  }, [updateState, onError, state.status, state.session, state.duration]);
 
-  // Check browser support for MediaRecorder
+  // Check browser support with comprehensive compatibility checking
   const checkBrowserSupport = useCallback((): boolean => {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    const compatibility = browserCompatibility.checkCompatibility();
+    
+    if (!compatibility.isPartiallySupported) {
+      const message = browserCompatibility.getUnsupportedBrowserMessage();
       handleError(
         RECORDING_ERROR_CODES.UNSUPPORTED_BROWSER,
-        'MediaDevices API not supported in this browser'
+        message,
+        {
+          browserInfo: compatibility.browserInfo,
+          missingFeatures: compatibility.missingFeatures,
+          recommendations: compatibility.upgradeRecommendations
+        }
       );
       return false;
     }
 
-    if (!window.MediaRecorder) {
-      handleError(
-        RECORDING_ERROR_CODES.UNSUPPORTED_BROWSER,
-        'MediaRecorder API not supported in this browser'
-      );
-      return false;
+    // Log warnings for partial support
+    if (!compatibility.isFullySupported) {
+      console.warn('Browser has partial recording support:', {
+        missingFeatures: compatibility.missingFeatures,
+        warnings: compatibility.browserInfo.warnings,
+        fallbackOptions: compatibility.fallbackOptions
+      });
     }
 
-    // Check if the preferred mime type is supported
-    if (!MediaRecorder.isTypeSupported(DEFAULT_MEDIA_RECORDER_CONFIG.mimeType)) {
-      console.warn('Preferred mime type not supported, will use browser default');
+    // Use best supported MIME type instead of hardcoded one
+    const bestMimeType = browserCompatibility.getBestSupportedMimeType();
+    if (bestMimeType !== DEFAULT_MEDIA_RECORDER_CONFIG.mimeType) {
+      console.log(`Using best supported MIME type: ${bestMimeType}`);
+      DEFAULT_MEDIA_RECORDER_CONFIG.mimeType = bestMimeType;
     }
 
     return true;
@@ -227,7 +257,7 @@ export default function AudioRecorder({
     return true;
   }, []);
 
-  // Process and collect audio data chunks
+  // Process and collect audio data chunks with enhanced error handling
   const processAudioChunk = useCallback((chunk: Blob) => {
     // Validate the chunk before processing
     if (!validateAudioChunk(chunk)) {
@@ -238,27 +268,51 @@ export default function AudioRecorder({
     // Add chunk to collection
     audioChunksRef.current.push(chunk);
     
-    // Calculate total size for monitoring
-    const totalSize = audioChunksRef.current.reduce((sum, chunk) => sum + chunk.size, 0);
+    // Check memory usage and handle memory limits
+    const memoryCheck = recordingErrorRecovery.checkMemoryUsage(audioChunksRef.current);
+    
+    if (memoryCheck.isNearLimit) {
+      console.warn('Memory usage approaching limit:', memoryCheck.totalSize);
+      
+      // Save current data for recovery before stopping
+      if (state.session) {
+        recordingErrorRecovery.saveRecoveryData(
+          audioChunksRef.current,
+          state.duration,
+          state.session.id
+        );
+      }
+      
+      handleError(
+        RECORDING_ERROR_CODES.MEMORY_LIMIT_EXCEEDED,
+        'Recording stopped due to memory limits. Data has been saved for recovery.'
+      );
+      return;
+    }
     
     // Log chunk processing for debugging
     console.log('Audio chunk processed:', {
       chunkSize: chunk.size,
       chunkType: chunk.type,
       totalChunks: audioChunksRef.current.length,
-      totalSize: totalSize,
+      totalSize: memoryCheck.totalSize,
       timestamp: new Date().toISOString()
     });
 
     // Update state with new chunks array
     updateState({ audioChunks: [...audioChunksRef.current] });
 
-    // Check for memory usage warnings
-    const MAX_TOTAL_SIZE = 100 * 1024 * 1024; // 100MB warning threshold
-    if (totalSize > MAX_TOTAL_SIZE) {
-      console.warn('Audio data size approaching memory limit:', totalSize);
+    // Periodically save recovery data (every 10 seconds)
+    const now = Date.now();
+    if (state.session && now - lastSaveTimeRef.current > 10000) {
+      recordingErrorRecovery.saveRecoveryData(
+        audioChunksRef.current,
+        state.duration,
+        state.session.id
+      );
+      lastSaveTimeRef.current = now;
     }
-  }, [validateAudioChunk, updateState]);
+  }, [validateAudioChunk, updateState, state.session, state.duration, handleError]);
 
   // Merge audio chunks into a single blob with format validation
   const mergeAudioChunks = useCallback((chunks: Blob[], mimeType: string): Blob => {
@@ -309,7 +363,7 @@ export default function AudioRecorder({
     return mergedBlob;
   }, [validateAudioChunk]);
 
-  // Create MediaRecorder instance with enhanced data processing
+  // Create MediaRecorder instance with enhanced error handling and device monitoring
   const createMediaRecorder = useCallback((stream: MediaStream): MediaRecorder | null => {
     try {
       const config: MediaRecorderOptions = {};
@@ -349,6 +403,28 @@ export default function AudioRecorder({
           state: mediaRecorder.state,
           audioBitsPerSecond: config.audioBitsPerSecond
         });
+        
+        // Set up device monitoring
+        deviceCleanupRef.current = recordingErrorRecovery.onDeviceChange((isConnected) => {
+          if (!isConnected && state.status === RecordingStatus.RECORDING) {
+            console.warn('Audio device disconnected during recording');
+            handleError(
+              RECORDING_ERROR_CODES.DEVICE_DISCONNECTED,
+              'Microphone was disconnected during recording'
+            );
+          }
+        });
+        
+        // Set up network monitoring
+        networkCleanupRef.current = recordingErrorRecovery.onNetworkChange((isOnline) => {
+          if (!isOnline) {
+            console.warn('Network connection lost during recording');
+            // Don't stop recording, just warn user
+            console.log('Recording will continue offline and upload when connection is restored');
+          } else {
+            console.log('Network connection restored');
+          }
+        });
       };
 
       mediaRecorder.onstop = () => {
@@ -356,16 +432,62 @@ export default function AudioRecorder({
           finalChunkCount: audioChunksRef.current.length,
           totalSize: audioChunksRef.current.reduce((sum, chunk) => sum + chunk.size, 0)
         });
+        
+        // Clean up monitoring
+        if (deviceCleanupRef.current) {
+          deviceCleanupRef.current();
+          deviceCleanupRef.current = null;
+        }
+        
+        if (networkCleanupRef.current) {
+          networkCleanupRef.current();
+          networkCleanupRef.current = null;
+        }
       };
 
       mediaRecorder.onerror = (event: any) => {
         console.error('MediaRecorder error:', event.error);
-        handleError(
-          RECORDING_ERROR_CODES.RECORDING_FAILED,
-          'MediaRecorder error occurred',
-          event.error
-        );
+        
+        // Determine error type and handle accordingly
+        let errorCode = RECORDING_ERROR_CODES.RECORDING_FAILED;
+        let errorMessage = 'MediaRecorder error occurred';
+        
+        if (event.error) {
+          const errorName = event.error.name || '';
+          if (errorName.includes('InvalidState')) {
+            errorCode = RECORDING_ERROR_CODES.RECORDING_INTERRUPTED;
+            errorMessage = 'Recording was interrupted unexpectedly';
+          } else if (errorName.includes('NotSupported')) {
+            errorCode = RECORDING_ERROR_CODES.UNSUPPORTED_BROWSER;
+            errorMessage = 'Recording format not supported by browser';
+          }
+        }
+        
+        handleError(errorCode, errorMessage, event.error);
       };
+
+      // Monitor stream track states for device disconnection
+      stream.getAudioTracks().forEach(track => {
+        if (track.addEventListener) {
+          track.addEventListener('ended', () => {
+            console.warn('Audio track ended unexpectedly');
+            if (state.status === RecordingStatus.RECORDING) {
+              handleError(
+                RECORDING_ERROR_CODES.DEVICE_DISCONNECTED,
+                'Audio input was disconnected'
+              );
+            }
+          });
+          
+          track.addEventListener('mute', () => {
+            console.warn('Audio track muted');
+          });
+          
+          track.addEventListener('unmute', () => {
+            console.log('Audio track unmuted');
+          });
+        }
+      });
 
       // Additional event handlers for better monitoring
       mediaRecorder.onpause = () => {
@@ -386,7 +508,7 @@ export default function AudioRecorder({
       );
       return null;
     }
-  }, [processAudioChunk, handleError]);
+  }, [processAudioChunk, handleError, state.status]);
 
   // Start recording timer
   const startTimer = useCallback(() => {
@@ -883,12 +1005,79 @@ export default function AudioRecorder({
     });
   }, [state.status, stopRecording, stopTimer, updateState, validateStateTransition]);
 
+  // Recovery functions
+  const recoverRecording = useCallback(async (): Promise<boolean> => {
+    try {
+      const recoveryData = recordingErrorRecovery.getRecoveryData();
+      if (!recoveryData) {
+        console.warn('No recovery data available');
+        return false;
+      }
+
+      console.log('Recovering recording:', recoveryData);
+
+      // Restore audio chunks
+      const restoredChunks = await recordingErrorRecovery.restoreAudioChunks();
+      if (restoredChunks.length === 0) {
+        console.warn('No audio chunks could be restored');
+        return false;
+      }
+
+      // Update state with recovered data
+      audioChunksRef.current = restoredChunks;
+      updateState({
+        duration: recoveryData.duration,
+        audioChunks: restoredChunks,
+        status: RecordingStatus.STOPPED,
+        session: {
+          id: recoveryData.sessionId,
+          startTime: new Date(recoveryData.timestamp),
+          endTime: new Date(),
+          duration: recoveryData.duration,
+          status: RecordingStatus.STOPPED,
+          audioChunks: restoredChunks
+        }
+      });
+
+      console.log('Recording recovered successfully');
+      return true;
+    } catch (error: any) {
+      console.error('Failed to recover recording:', error);
+      handleError(
+        RECORDING_ERROR_CODES.UNKNOWN_ERROR,
+        `Failed to recover recording: ${error.message}`,
+        error
+      );
+      return false;
+    }
+  }, [updateState, handleError]);
+
+  const hasRecoverableData = useCallback((): boolean => {
+    return recordingErrorRecovery.canRecover();
+  }, []);
+
+  const clearRecoveryData = useCallback(() => {
+    recordingErrorRecovery.clearRecoveryData();
+  }, []);
+
+  const getRecoverySuggestions = useCallback((errorCode?: string): string[] => {
+    return recordingErrorRecovery.getRecoverySuggestions(errorCode || state.error || '');
+  }, [state.error]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       stopTimer();
       if (mediaStreamRef.current) {
         mediaStreamRef.current.getTracks().forEach(track => track.stop());
+      }
+      
+      // Clean up monitoring
+      if (deviceCleanupRef.current) {
+        deviceCleanupRef.current();
+      }
+      if (networkCleanupRef.current) {
+        networkCleanupRef.current();
       }
     };
   }, [stopTimer]);
@@ -923,6 +1112,20 @@ export default function AudioRecorder({
     getRemainingTime: (): number => Math.max(0, maxDuration - state.duration),
     
     getProgress: (): number => maxDuration > 0 ? Math.min(1, state.duration / maxDuration) : 0,
+    
+    // Recovery functions
+    recoverRecording,
+    hasRecoverableData,
+    clearRecoveryData,
+    getRecoverySuggestions,
+    
+    // Network and device status
+    isOnline: navigator.onLine,
+    
+    // Browser compatibility
+    getBrowserCompatibility: () => browserCompatibility.checkCompatibility(),
+    getSupportedMimeTypes: () => browserCompatibility.getSupportedMimeTypes(),
+    getBestMimeType: () => browserCompatibility.getBestSupportedMimeType(),
     
     // State validation
     isValidState: (): boolean => {
