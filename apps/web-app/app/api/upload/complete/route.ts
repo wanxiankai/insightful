@@ -87,8 +87,9 @@ export async function POST(req: Request) {
         console.log('Job created successfully:', newJob.id);
         break; // 成功创建，退出循环
 
-      } catch (error: unknown) {
-        if (error.code === 'P2002' && error.meta?.target?.includes('id')) {
+      } catch (error: any) {
+        const prismaError = error as any;
+        if (prismaError?.code === 'P2002' && prismaError?.meta?.target?.includes('id')) {
           // 唯一约束冲突，生成新ID重试
           console.log(`Unique constraint violation for ID ${jobId}, retrying with new ID`);
           jobId = generateUniqueId('job');
@@ -116,6 +117,7 @@ export async function POST(req: Request) {
 
     // 4. 任务派发到 QStash
     const qstashUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/worker`;
+    // const qstashUrl = `https://8373dfffbe63.ngrok-free.app/api/worker`;
     console.log('Dispatching to QStash:', qstashUrl);
 
     await qstashClient.publishJSON({
