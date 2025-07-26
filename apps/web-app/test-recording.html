@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recording Test</title>
+</head>
+<body>
+    <h1>Recording Compatibility Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        // Simple test to verify browser compatibility check doesn't throw errors
+        function testBrowserCompatibility() {
+            const results = document.getElementById('results');
+            
+            try {
+                // Test basic MediaRecorder support
+                if (window.MediaRecorder) {
+                    results.innerHTML += '<p>✅ MediaRecorder is available</p>';
+                    
+                    // Test MIME type support
+                    const mimeTypes = [
+                        'audio/webm;codecs=opus',
+                        'audio/webm',
+                        'audio/ogg;codecs=opus',
+                        'audio/mp4'
+                    ];
+                    
+                    mimeTypes.forEach(mimeType => {
+                        try {
+                            const isSupported = MediaRecorder.isTypeSupported(mimeType);
+                            results.innerHTML += `<p>${isSupported ? '✅' : '❌'} ${mimeType}</p>`;
+                        } catch (error) {
+                            results.innerHTML += `<p>❌ ${mimeType} - Error: ${error.message}</p>`;
+                        }
+                    });
+                } else {
+                    results.innerHTML += '<p>❌ MediaRecorder is not available</p>';
+                }
+                
+                // Test getUserMedia
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    results.innerHTML += '<p>✅ getUserMedia is available</p>';
+                } else {
+                    results.innerHTML += '<p>❌ getUserMedia is not available</p>';
+                }
+                
+                // Test AudioContext
+                if (window.AudioContext) {
+                    results.innerHTML += '<p>✅ AudioContext is available</p>';
+                    
+                    try {
+                        const ctx = new AudioContext();
+                        if (ctx.audioWorklet) {
+                            results.innerHTML += '<p>✅ AudioWorklet is supported</p>';
+                        } else {
+                            results.innerHTML += '<p>❌ AudioWorklet is not supported</p>';
+                        }
+                        ctx.close();
+                    } catch (error) {
+                        results.innerHTML += `<p>❌ AudioContext test failed: ${error.message}</p>`;
+                    }
+                } else {
+                    results.innerHTML += '<p>❌ AudioContext is not available</p>';
+                }
+                
+                results.innerHTML += '<p><strong>✅ All tests completed without throwing "Illegal invocation" errors!</strong></p>';
+                
+            } catch (error) {
+                results.innerHTML += `<p><strong>❌ Test failed with error: ${error.message}</strong></p>`;
+            }
+        }
+        
+        // Run test when page loads
+        window.addEventListener('load', testBrowserCompatibility);
+    </script>
+</body>
+</html>

@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import JobList, { JobListRef } from "./JobList";
 import UploadZone from "./UploadZone";
+import RecordingUploadZone from "./RecordingUploadZone";
 import { MeetingJob } from "./JobItem";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -18,11 +19,26 @@ export default function ClientWrapper({ initialJobs }: ClientWrapperProps) {
   const handleUploadComplete = async (tempJob: MeetingJob) => {
     // 立即添加乐观更新
     jobListRef.current?.addOptimisticJob(tempJob);
-    
-    // 自动重试函数
+
+    console.log('Upload completed, job added to list:', tempJob.id);
+
+    // 检查是否是录制上传（录制上传的 job 已经在后端创建了）
+    const isRecordingUpload = tempJob.fileName?.startsWith('recording_') ||
+      tempJob.fileKey?.includes('recording_');
+
+    if (isRecordingUpload) {
+      console.log('Recording upload detected, job already created in backend');
+      // 录制上传的 job 已经在后端创建，只需要刷新列表
+      setTimeout(() => {
+        jobListRef.current?.refreshJobs();
+      }, 2000); // 给后端一些时间处理
+      return;
+    }
+
+    // 自动重试函数 - 只用于常规文件上传
     const createJobWithRetry = async (retryCount = 0): Promise<void> => {
       const maxRetries = 3;
-      
+
       try {
         const response = await fetch('/api/upload/complete', {
           method: 'POST',
@@ -37,19 +53,19 @@ export default function ClientWrapper({ initialJobs }: ClientWrapperProps) {
             locale: locale, // 添加语言信息
           }),
         });
-        
+
         if (!response.ok) {
           const errorText = await response.text();
           throw new Error(`Backend API failed: ${response.status} - ${errorText}`);
         }
-        
+
         await response.json();
-        
+
         // 安排一个备用检查，只有在乐观更新仍然存在时才刷新
         setTimeout(() => {
           jobListRef.current?.refreshJobs();
         }, 15000); // 延长到15秒，给Supabase更多时间
-        
+
       } catch (error) {
         if (retryCount < maxRetries) {
           // 延迟后重试
@@ -62,7 +78,7 @@ export default function ClientWrapper({ initialJobs }: ClientWrapperProps) {
         }
       }
     };
-    
+
     // 开始创建任务（带重试）
     createJobWithRetry();
   };

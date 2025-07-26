@@ -128,6 +128,98 @@ export interface Translations {
     onlyCompletedCanDelete: string;
   };
 
+  // 录制功能
+  recording: {
+    startRecording: string;
+    stopRecording: string;
+    recording: string;
+    requestPermission: string;
+    permissionRequired: string;
+    permissionGranted: string;
+    permissionDenied: string;
+    permissionDeniedDesc: string;
+    permissionInstructions: string;
+    deviceNotFound: string;
+    deviceNotFoundDesc: string;
+    deviceBusy: string;
+    deviceBusyDesc: string;
+    unsupportedBrowser: string;
+    unsupportedBrowserDesc: string;
+    tryAgain: string;
+    openSettings: string;
+    checkMicrophone: string;
+    closeOtherApps: string;
+    upgradebrowser: string;
+    // Timer related
+    recorded: string;
+    remaining: string;
+    timeLimit: string;
+    approachingLimit: string;
+    criticalLimit: string;
+    ready: string;
+    paused: string;
+    stopped: string;
+    error: string;
+    // Browser compatibility
+    compatibilityWarning: string;
+    limitedSupport: string;
+    currentBrowser: string;
+    missingFeatures: string;
+    warnings: string;
+    availableOptions: string;
+    recommendations: string;
+    continueAnyway: string;
+    technicalSupport: string;
+    // Demo component
+    demoTitle: string;
+    status: string;
+    duration: string;
+    clearError: string;
+    permission: string;
+    canRecord: string;
+    yes: string;
+    no: string;
+    requesting: string;
+    // Interface messages
+    errorDetails: string;
+    recordingTips: string;
+    recordingSuccess: string;
+    tip1: string;
+    tip2: string;
+    tip3: string;
+    tip4: string;
+    successMessage: string;
+    // State manager
+    readyToRecord: string;
+    clickToStart: string;
+    requestingPermission: string;
+    requestingMicAccess: string;
+    recordingInProgress: string;
+    keepQuiet: string;
+    processingAudio: string;
+    processingFile: string;
+    recordingCompleted: string;
+    recordingSaved: string;
+    recordingError: string;
+    errorOccurred: string;
+    unknownStatus: string;
+    statusUnknown: string;
+    recordingDuration: string;
+    processingPleaseWait: string;
+    // Upload zone
+    recordingNow: string;
+    keepQuietAvoidNoise: string;
+    remainingTime: string;
+    allowMicrophoneAccess: string;
+    uploadingAudioFile: string;
+    processingAudioFile: string;
+    clickStopToEnd: string;
+    keepConnectionOpen: string;
+    taskCreated: string;
+    aiAnalysisInProgress: string;
+    newRecording: string;
+  };
+
   // 错误信息
   errors: {
     uploadFailed: string;
@@ -247,6 +339,96 @@ export const zhTranslations: Translations = {
     confirmDelete: '确认删除',
     onlyCompletedCanDelete: '只能删除已完成或失败的任务',
   },
+  recording: {
+    startRecording: '开始录制',
+    stopRecording: '停止录制',
+    recording: '录制中',
+    requestPermission: '请求权限',
+    permissionRequired: '需要麦克风权限',
+    permissionGranted: '麦克风已就绪',
+    permissionDenied: '麦克风权限被拒绝',
+    permissionDeniedDesc: '无法访问麦克风，请在浏览器设置中允许麦克风权限',
+    permissionInstructions: '为了开始录制，我们需要访问您的麦克风。请点击下方按钮授予权限。',
+    deviceNotFound: '未找到麦克风设备',
+    deviceNotFoundDesc: '请确保您的设备已连接麦克风并重试',
+    deviceBusy: '麦克风正在被其他应用使用',
+    deviceBusyDesc: '请关闭其他正在使用麦克风的应用程序',
+    unsupportedBrowser: '浏览器不支持录制功能',
+    unsupportedBrowserDesc: '请使用最新版本的Chrome、Firefox或Safari浏览器',
+    tryAgain: '重试',
+    openSettings: '打开设置',
+    checkMicrophone: '检查麦克风',
+    closeOtherApps: '关闭其他应用',
+    upgradebrowser: '升级浏览器',
+    // Timer related
+    recorded: '已录制',
+    remaining: '剩余',
+    timeLimit: '录制时间即将达到上限',
+    approachingLimit: '⚠️ 录制时间即将达到上限',
+    criticalLimit: '🚨 录制即将自动停止',
+    ready: '就绪',
+    paused: '已暂停',
+    stopped: '已停止',
+    error: '错误',
+    // Browser compatibility
+    compatibilityWarning: '浏览器兼容性警告',
+    limitedSupport: '您的浏览器对录制功能的支持有限。',
+    currentBrowser: '当前浏览器',
+    missingFeatures: '缺失功能',
+    warnings: '警告',
+    availableOptions: '可用选项',
+    recommendations: '建议',
+    continueAnyway: '仍然继续',
+    technicalSupport: '如需技术支持，请联系我们的帮助台',
+    // Demo component
+    demoTitle: '录音演示',
+    status: '状态',
+    duration: '时长',
+    clearError: '清除错误',
+    permission: '权限',
+    canRecord: '可以录制',
+    yes: '是',
+    no: '否',
+    requesting: '请求中...',
+    // Interface messages
+    errorDetails: '错误详情',
+    recordingTips: '录制提示',
+    recordingSuccess: '录制成功',
+    tip1: '确保您的麦克风已连接并正常工作',
+    tip2: '选择安静的环境进行录制',
+    tip3: '录制时长最多30分钟',
+    tip4: '支持的格式：WebM (Opus编码)',
+    successMessage: '您的录音已成功保存，时长',
+    // State manager
+    readyToRecord: '准备录制',
+    clickToStart: '点击开始按钮开始录音',
+    requestingPermission: '请求权限',
+    requestingMicAccess: '正在请求麦克风访问权限...',
+    recordingInProgress: '录制中',
+    keepQuiet: '正在录制音频，请保持安静...',
+    processingAudio: '处理中',
+    processingFile: '正在处理录音文件...',
+    recordingCompleted: '录制完成',
+    recordingSaved: '录音已成功保存',
+    recordingError: '录制错误',
+    errorOccurred: '录制过程中发生错误',
+    unknownStatus: '未知状态',
+    statusUnknown: '状态未知',
+    recordingDuration: '录制时长',
+    processingPleaseWait: '处理中，请稍候...',
+    // Upload zone
+    recordingNow: '正在录制',
+    keepQuietAvoidNoise: '请保持安静，避免背景噪音',
+    remainingTime: '剩余时间',
+    allowMicrophoneAccess: '请在浏览器弹窗中允许访问麦克风权限',
+    uploadingAudioFile: '正在上传录音文件',
+    processingAudioFile: '正在处理录音文件',
+    clickStopToEnd: '点击停止按钮结束录制',
+    keepConnectionOpen: '请保持网络连接，不要关闭页面',
+    taskCreated: '任务已创建，正在进行AI分析',
+    aiAnalysisInProgress: '任务已创建，正在进行AI分析',
+    newRecording: '新建录制',
+  },
   errors: {
     uploadFailed: '上传失败',
     createJobFailed: '创建任务失败',
@@ -364,6 +546,96 @@ export const enTranslations: Translations = {
     deleting: 'Deleting...',
     confirmDelete: 'Confirm Delete',
     onlyCompletedCanDelete: 'Only completed or failed tasks can be deleted',
+  },
+  recording: {
+    startRecording: 'Start Recording',
+    stopRecording: 'Stop Recording',
+    recording: 'Recording',
+    requestPermission: 'Request Permission',
+    permissionRequired: 'Microphone Permission Required',
+    permissionGranted: 'Microphone Ready',
+    permissionDenied: 'Microphone Permission Denied',
+    permissionDeniedDesc: 'Cannot access microphone. Please allow microphone access in your browser settings.',
+    permissionInstructions: 'To start recording, we need access to your microphone. Please click the button below to grant permission.',
+    deviceNotFound: 'Microphone Device Not Found',
+    deviceNotFoundDesc: 'Please ensure your device has a microphone connected and try again.',
+    deviceBusy: 'Microphone is Being Used by Another Application',
+    deviceBusyDesc: 'Please close other applications that are using the microphone.',
+    unsupportedBrowser: 'Browser Does Not Support Recording',
+    unsupportedBrowserDesc: 'Please use the latest version of Chrome, Firefox, or Safari.',
+    tryAgain: 'Try Again',
+    openSettings: 'Open Settings',
+    checkMicrophone: 'Check Microphone',
+    closeOtherApps: 'Close Other Apps',
+    upgradebrowser: 'Upgrade Browser',
+    // Timer related
+    recorded: 'Recorded',
+    remaining: 'Remaining',
+    timeLimit: 'Recording time limit approaching',
+    approachingLimit: '⚠️ Recording time limit approaching',
+    criticalLimit: '🚨 Recording will stop automatically',
+    ready: 'Ready',
+    paused: 'Paused',
+    stopped: 'Stopped',
+    error: 'Error',
+    // Browser compatibility
+    compatibilityWarning: 'Browser Compatibility Warning',
+    limitedSupport: 'Your browser has limited support for recording features.',
+    currentBrowser: 'Current Browser',
+    missingFeatures: 'Missing Features',
+    warnings: 'Warnings',
+    availableOptions: 'Available Options',
+    recommendations: 'Recommendations',
+    continueAnyway: 'Continue Anyway',
+    technicalSupport: 'For technical support, please contact our help desk',
+    // Demo component
+    demoTitle: 'Audio Recorder Demo',
+    status: 'Status',
+    duration: 'Duration',
+    clearError: 'Clear Error',
+    permission: 'Permission',
+    canRecord: 'Can Record',
+    yes: 'Yes',
+    no: 'No',
+    requesting: 'Requesting...',
+    // Interface messages
+    errorDetails: 'Error Details',
+    recordingTips: 'Recording Tips',
+    recordingSuccess: 'Recording Successful',
+    tip1: 'Ensure your microphone is connected and working properly',
+    tip2: 'Choose a quiet environment for recording',
+    tip3: 'Maximum recording duration is 30 minutes',
+    tip4: 'Supported format: WebM (Opus codec)',
+    successMessage: 'Your recording has been successfully saved, duration',
+    // State manager
+    readyToRecord: 'Ready to Record',
+    clickToStart: 'Click start button to begin recording',
+    requestingPermission: 'Requesting Permission',
+    requestingMicAccess: 'Requesting microphone access permission...',
+    recordingInProgress: 'Recording',
+    keepQuiet: 'Recording audio, please keep quiet...',
+    processingAudio: 'Processing',
+    processingFile: 'Processing audio file...',
+    recordingCompleted: 'Recording Completed',
+    recordingSaved: 'Recording successfully saved',
+    recordingError: 'Recording Error',
+    errorOccurred: 'An error occurred during recording',
+    unknownStatus: 'Unknown Status',
+    statusUnknown: 'Status unknown',
+    recordingDuration: 'Recording Duration',
+    processingPleaseWait: 'Processing, please wait...',
+    // Upload zone
+    recordingNow: 'Recording Now',
+    keepQuietAvoidNoise: 'Please keep quiet and avoid background noise',
+    remainingTime: 'Remaining Time',
+    allowMicrophoneAccess: 'Please allow microphone access in the browser popup',
+    uploadingAudioFile: 'Uploading audio file',
+    processingAudioFile: 'Processing audio file',
+    clickStopToEnd: 'Click stop button to end recording',
+    keepConnectionOpen: 'Please keep network connection, do not close the page',
+    taskCreated: 'Task created, AI analysis in progress',
+    aiAnalysisInProgress: 'Task created, AI analysis in progress',
+    newRecording: 'New Recording',
   },
   errors: {
     uploadFailed: 'Upload failed',

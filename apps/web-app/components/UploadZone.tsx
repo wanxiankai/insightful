@@ -1,14 +1,13 @@
 "use client";
 
-"use client";
-
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { UploadCloud, File as FileIcon, CheckCircle, AlertCircle } from "lucide-react";
+import { UploadCloud, File as FileIcon, CheckCircle, AlertCircle, Mic, Upload } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import { MeetingJob } from "./JobItem";
 import { generateUniqueId } from "@/lib/api-utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import RecordingUploadZone from "./RecordingUploadZone";
 
 interface UploadedFile {
   id: string;
@@ -29,6 +28,7 @@ function UploadProgressItem({
   upload: UploadedFile
 }) {
   const { file, progress, status, error } = upload;
+  const { t } = useLanguage();
 
   return (
     <div className="relative w-full overflow-hidden rounded-lg border border-gray-200 bg-white">
@@ -56,7 +56,7 @@ function UploadProgressItem({
               {status === 'error' && error && (
                 <span className="text-xs text-red-600">
                   <span className="text-gray-500 text-xs"> | </span> 
-                  错误: {error}
+                  {t.common.error}: {error}
                 </span>
               )}
             </div>
@@ -80,6 +80,7 @@ function UploadProgressItem({
 
 export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
   const [uploads, setUploads] = useState<UploadedFile[]>([]);
+  const [activeTab, setActiveTab] = useState<'upload' | 'record'>('upload');
   const { t, locale } = useLanguage();
 
   // 更新上传进度的辅助函数
@@ -231,29 +232,70 @@ export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
 
   return (
     <div className="w-full max-w-2xl">
-      <div className="bg-white rounded-lg p-6 shadow">
-        <h2 className="text-xl font-semibold mb-4">{t.home.uploadTitle}</h2>
+      <div className="bg-white rounded-lg shadow">
+        {/* Tab Navigation */}
+        <div className="border-b border-gray-200">
+          <nav className="flex space-x-8 px-6 pt-6">
+            <button
+              onClick={() => setActiveTab('upload')}
+              className={`pb-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                activeTab === 'upload'
+                  ? 'border-[#61d0de] text-[#61d0de]'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Upload className="w-4 h-4" />
+                {t.common.uploadFile}
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('record')}
+              className={`pb-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                activeTab === 'record'
+                  ? 'border-[#61d0de] text-[#61d0de]'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Mic className="w-4 h-4" />
+                {t.recording.newRecording}
+              </div>
+            </button>
+          </nav>
+        </div>
 
-        <div
-          {...getRootProps()}
-          className={`flex w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-10 text-center transition-colors duration-300 ${isDragActive
-            ? "border-[#61d0de] bg-[#61d0de]/5"
-            : "border-gray-300 bg-gray-50 hover:border-[#61d0de]/50 hover:bg-[#61d0de]/5"
-            }`}
-        >
-          <input {...getInputProps()} />
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#61d0de]/10">
-            <UploadCloud className="h-8 w-8 text-[#61d0de]" />
-          </div>
-          <p className="mt-4 text-base font-semibold text-gray-700">
-            {t.common.dragDropHere} {locale === 'zh' ? '或' : 'or'}{" "}
-            <span className="font-bold text-[#61d0de]">{t.common.selectFile}</span>
-          </p>
-          <p className="mt-1 text-sm text-gray-500">
-            {t.common.supportedFormats}
-          </p>
+        {/* Tab Content */}
+        <div className="p-6">
+          {activeTab === 'upload' ? (
+            <>
+              <h2 className="text-xl font-semibold mb-4">{t.home.uploadTitle}</h2>
+              <div
+                {...getRootProps()}
+                className={`flex w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-10 text-center transition-colors duration-300 ${isDragActive
+                  ? "border-[#61d0de] bg-[#61d0de]/5"
+                  : "border-gray-300 bg-gray-50 hover:border-[#61d0de]/50 hover:bg-[#61d0de]/5"
+                  }`}
+              >
+                <input {...getInputProps()} />
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#61d0de]/10">
+                  <UploadCloud className="h-8 w-8 text-[#61d0de]" />
+                </div>
+                <p className="mt-4 text-base font-semibold text-gray-700">
+                  {t.common.dragDropHere} {locale === 'zh' ? '或' : 'or'}{" "}
+                  <span className="font-bold text-[#61d0de]">{t.common.selectFile}</span>
+                </p>
+                <p className="mt-1 text-sm text-gray-500">
+                  {t.common.supportedFormats}
+                </p>
+              </div>
+            </>
+          ) : (
+            <RecordingUploadZone onUploadComplete={onUploadComplete} />
+          )}
         </div>
       </div>
+      
       {uploads.length > 0 && (
         <div className="mt-6 space-y-4">
           <h3 className="text-base font-semibold text-gray-800">
