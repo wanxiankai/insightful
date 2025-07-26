@@ -28,6 +28,7 @@ function UploadProgressItem({
   upload: UploadedFile
 }) {
   const { file, progress, status, error } = upload;
+  const { t } = useLanguage();
 
   return (
     <div className="relative w-full overflow-hidden rounded-lg border border-gray-200 bg-white">
@@ -55,7 +56,7 @@ function UploadProgressItem({
               {status === 'error' && error && (
                 <span className="text-xs text-red-600">
                   <span className="text-gray-500 text-xs"> | </span> 
-                  错误: {error}
+                  {t.common.error}: {error}
                 </span>
               )}
             </div>
@@ -245,7 +246,7 @@ export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
             >
               <div className="flex items-center gap-2">
                 <Upload className="w-4 h-4" />
-                文件上传
+                {t.common.uploadFile}
               </div>
             </button>
             <button
@@ -258,7 +259,7 @@ export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
             >
               <div className="flex items-center gap-2">
                 <Mic className="w-4 h-4" />
-                即时录音
+                {t.recording.newRecording}
               </div>
             </button>
           </nav>
