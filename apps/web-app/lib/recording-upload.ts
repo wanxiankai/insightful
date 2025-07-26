@@ -181,7 +181,7 @@ export async function uploadRecordedAudio(
     
     // Provide more specific error messages
     let userFriendlyError = errorMessage;
-    if (error.name === 'AbortError') {
+    if (error instanceof Error && error.name === 'AbortError') {
       userFriendlyError = 'Upload was cancelled';
     } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
       userFriendlyError = 'Network error occurred, please check your connection';
