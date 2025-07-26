@@ -49,6 +49,16 @@ interface UseAudioRecorderReturn {
   getRemainingTime: () => number;
   getProgress: () => number;
   clearError: () => void;
+  
+  // Browser compatibility
+  getBrowserCompatibility: () => any;
+  getSupportedMimeTypes: () => string[];
+  getBestMimeType: () => string;
+  
+  // Recovery functions
+  hasRecoverableData: () => boolean;
+  getRecoverySuggestions: (errorCode?: string) => string[];
+  clearRecoveryData: () => void;
 }
 
 export function useAudioRecorder({
@@ -474,7 +484,7 @@ export function useAudioRecorder({
     
     // Recovery functions
     hasRecoverableData: () => recordingErrorRecovery.canRecover(),
-    getRecoverySuggestions: (errorCode?: string) => recordingErrorRecovery.getRecoverySuggestions(errorCode || error || ''),
+    getRecoverySuggestions: (errorCode?: string) => recordingErrorRecovery.getRecoverySuggestions(errorCode || state.error || ''),
     clearRecoveryData: () => recordingErrorRecovery.clearRecoveryData()
   };
 }

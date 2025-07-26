@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Clock } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export interface RecordingTimerProps {
   duration: number; // Duration in seconds
@@ -18,6 +19,7 @@ export default function RecordingTimer({
   showProgress = true,
   className = ""
 }: RecordingTimerProps) {
+  const { t } = useLanguage();
   const [displayDuration, setDisplayDuration] = useState(duration);
 
   // Update display duration when prop changes
@@ -91,9 +93,9 @@ export default function RecordingTimer({
           
           {/* Remaining Time Display */}
           <div className="flex justify-between text-xs text-gray-500 mt-1">
-            <span>已录制</span>
+            <span>{t.recording.recorded}</span>
             <span className={isApproachingLimit ? getTimerStyle() : ''}>
-              剩余 {formatTime(remainingTime)}
+              {t.recording.remaining} {formatTime(remainingTime)}
             </span>
           </div>
         </div>
@@ -102,13 +104,13 @@ export default function RecordingTimer({
       {/* Warning Messages */}
       {isApproachingLimit && !isCritical && (
         <div className="text-xs text-orange-600 text-center">
-          ⚠️ 录制时间即将达到上限
+          {t.recording.approachingLimit}
         </div>
       )}
       
       {isCritical && (
         <div className="text-xs text-red-600 text-center font-semibold animate-pulse">
-          🚨 录制即将自动停止
+          {t.recording.criticalLimit}
         </div>
       )}
     </div>

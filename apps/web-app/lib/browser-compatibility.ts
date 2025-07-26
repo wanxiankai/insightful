@@ -119,7 +119,7 @@ export class BrowserCompatibilityChecker {
     if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) {
       name = 'chrome';
       const match = userAgent.match(/Chrome\/(\d+)/);
-      if (match) {
+      if (match && match[1]) {
         version = match[1];
         versionNumber = parseInt(match[1], 10);
       }
@@ -128,7 +128,7 @@ export class BrowserCompatibilityChecker {
     else if (userAgent.includes('Edg')) {
       name = 'edge';
       const match = userAgent.match(/Edg\/(\d+)/);
-      if (match) {
+      if (match && match[1]) {
         version = match[1];
         versionNumber = parseInt(match[1], 10);
       }
@@ -137,7 +137,7 @@ export class BrowserCompatibilityChecker {
     else if (userAgent.includes('Firefox')) {
       name = 'firefox';
       const match = userAgent.match(/Firefox\/(\d+)/);
-      if (match) {
+      if (match && match[1]) {
         version = match[1];
         versionNumber = parseInt(match[1], 10);
       }
@@ -146,7 +146,7 @@ export class BrowserCompatibilityChecker {
     else if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) {
       name = 'safari';
       const match = userAgent.match(/Version\/(\d+)/);
-      if (match) {
+      if (match && match[1]) {
         version = match[1];
         versionNumber = parseInt(match[1], 10);
       }
@@ -155,7 +155,7 @@ export class BrowserCompatibilityChecker {
     else if (userAgent.includes('OPR')) {
       name = 'opera';
       const match = userAgent.match(/OPR\/(\d+)/);
-      if (match) {
+      if (match && match[1]) {
         version = match[1];
         versionNumber = parseInt(match[1], 10);
       }

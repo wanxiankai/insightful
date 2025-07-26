@@ -449,7 +449,7 @@ export default function AudioRecorder({
         console.error('MediaRecorder error:', event.error);
         
         // Determine error type and handle accordingly
-        let errorCode = RECORDING_ERROR_CODES.RECORDING_FAILED;
+        let errorCode: RecordingErrorCode = RECORDING_ERROR_CODES.RECORDING_FAILED;
         let errorMessage = 'MediaRecorder error occurred';
         
         if (event.error) {

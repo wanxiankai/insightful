@@ -3,6 +3,7 @@
 import { RecordingStatus } from "@/types/recording";
 import { Mic, MicOff, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface RecordingIndicatorProps {
   status: RecordingStatus;
@@ -17,6 +18,7 @@ export default function RecordingIndicator({
   size = "md",
   showText = false
 }: RecordingIndicatorProps) {
+  const { t } = useLanguage();
   const isRecording = status === RecordingStatus.RECORDING;
   const isProcessing = status === RecordingStatus.PROCESSING;
   const isRequestingPermission = status === RecordingStatus.REQUESTING_PERMISSION;
@@ -61,19 +63,19 @@ export default function RecordingIndicator({
   const getStatusText = () => {
     switch (status) {
       case RecordingStatus.RECORDING:
-        return "录制中";
+        return t.recording.recording;
       case RecordingStatus.PROCESSING:
-        return "处理中";
+        return t.common.processing;
       case RecordingStatus.REQUESTING_PERMISSION:
-        return "请求权限";
+        return t.recording.requestPermission;
       case RecordingStatus.ERROR:
-        return "错误";
+        return t.recording.error;
       case RecordingStatus.PAUSED:
-        return "已暂停";
+        return t.recording.paused;
       case RecordingStatus.STOPPED:
-        return "已停止";
+        return t.recording.stopped;
       default:
-        return "就绪";
+        return t.recording.ready;
     }
   };
 

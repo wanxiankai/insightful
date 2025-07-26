@@ -189,14 +189,14 @@ export function PermissionHandler({
                 }
                 // For Firefox
                 else if (navigator.userAgent.includes('Firefox')) {
-                  alert('请在地址栏输入 about:preferences#privacy 并找到"权限"部分来管理麦克风权限');
+                  alert(t.recording.permissionDeniedDesc);
                 }
                 // For Safari
                 else if (navigator.userAgent.includes('Safari')) {
-                  alert('请在Safari菜单中选择"偏好设置" > "网站" > "麦克风"来管理权限');
+                  alert(t.recording.permissionDeniedDesc);
                 }
                 else {
-                  alert('请在浏览器设置中找到隐私或权限设置，允许此网站访问麦克风');
+                  alert(t.recording.permissionDeniedDesc);
                 }
               }
             }}

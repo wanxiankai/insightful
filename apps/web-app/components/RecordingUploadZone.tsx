@@ -50,17 +50,14 @@ export default function RecordingUploadZone({ onUploadComplete }: RecordingUploa
     }
   });
 
-  // 开始录制
   const handleStartRecording = useCallback(async () => {
     await startRecording();
   }, [startRecording]);
 
-  // 停止录制
   const handleStopRecording = useCallback(async () => {
     await stopRecording();
   }, [stopRecording]);
 
-  // 取消操作
   const handleCancel = useCallback(() => {
     cancel();
   }, [cancel]);
@@ -96,21 +93,21 @@ export default function RecordingUploadZone({ onUploadComplete }: RecordingUploa
           onStop={handleStopRecording}
           disabled={isActive && !canStop}
         >
-          {/* 录制提示和信息 */}
+          {/* Recording info */}
           {isRecording && (
             <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-700">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-red-800 dark:text-red-200">
-                    正在录制
+                    {t.recording.recordingNow}
                   </p>
                   <p className="text-xs text-red-600 dark:text-red-400">
-                    请保持安静，避免背景噪音
+                    {t.recording.keepQuietAvoidNoise}
                   </p>
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-red-600 dark:text-red-400">
-                    剩余时间
+                    {t.recording.remainingTime}
                   </p>
                   <p className="text-sm font-mono font-bold text-red-800 dark:text-red-200">
                     {formatDuration(getRemainingTime())}
@@ -120,23 +117,23 @@ export default function RecordingUploadZone({ onUploadComplete }: RecordingUploa
             </div>
           )}
 
-          {/* 权限提示 */}
+          {/* Permission prompt */}
           {recordingStatus === 'requesting_permission' && (
             <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
               <p className="text-sm text-blue-800 dark:text-blue-200">
-                请在浏览器弹窗中允许访问麦克风权限
+                {t.recording.allowMicrophoneAccess}
               </p>
             </div>
           )}
 
-          {/* 进度显示 */}
+          {/* Progress display */}
           {progress && (
             <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-700">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                  {progress.phase === 'recording' ? '正在录制' : 
-                   progress.phase === 'uploading' ? '正在上传录音文件' : 
-                   '正在处理录音文件'}
+                  {progress.phase === 'recording' ? t.recording.recordingNow : 
+                   progress.phase === 'uploading' ? t.recording.uploadingAudioFile : 
+                   t.recording.processingAudioFile}
                 </p>
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-semibold text-yellow-800 dark:text-yellow-200">
@@ -147,7 +144,7 @@ export default function RecordingUploadZone({ onUploadComplete }: RecordingUploa
                       onClick={handleCancel}
                       className="text-xs px-2 py-1 bg-yellow-200 dark:bg-yellow-700 text-yellow-800 dark:text-yellow-200 rounded hover:bg-yellow-300 dark:hover:bg-yellow-600 transition-colors"
                     >
-                      取消
+                      {t.common.cancel}
                     </button>
                   )}
                 </div>
@@ -175,28 +172,28 @@ export default function RecordingUploadZone({ onUploadComplete }: RecordingUploa
               )}
               
               <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
-                {progress.phase === 'recording' ? '点击停止按钮结束录制' : '请保持网络连接，不要关闭页面'}
+                {progress.phase === 'recording' ? t.recording.clickStopToEnd : t.recording.keepConnectionOpen}
               </p>
             </div>
           )}
 
-          {/* 完成状态 */}
+          {/* Completion status */}
           {isComplete && createdJob && (
             <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-green-800 dark:text-green-200">
-                    录制完成
+                    {t.recording.recordingCompleted}
                   </p>
                   <p className="text-xs text-green-600 dark:text-green-400">
-                    任务已创建，正在进行AI分析
+                    {t.recording.aiAnalysisInProgress}
                   </p>
                 </div>
                 <button
                   onClick={reset}
                   className="text-xs px-3 py-1 bg-green-200 dark:bg-green-700 text-green-800 dark:text-green-200 rounded hover:bg-green-300 dark:hover:bg-green-600 transition-colors"
                 >
-                  新建录制
+                  {t.recording.newRecording}
                 </button>
               </div>
             </div>

@@ -3,6 +3,7 @@
 import { RecordingStatus } from "@/types/recording";
 import { cn } from "@/lib/utils";
 import { CheckCircle, AlertCircle, Clock, Mic } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface RecordingStateManagerProps {
   status: RecordingStatus;
@@ -19,6 +20,7 @@ export default function RecordingStateManager({
   className = "",
   children
 }: RecordingStateManagerProps) {
+  const { t } = useLanguage();
   // Format duration for display
   const formatDuration = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -34,8 +36,8 @@ export default function RecordingStateManager({
           containerClass: "bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700",
           headerClass: "text-gray-700 dark:text-gray-300",
           icon: <Mic className="w-5 h-5 text-gray-500" />,
-          title: "准备录制",
-          subtitle: "点击开始按钮开始录音",
+          title: t.recording.readyToRecord,
+          subtitle: t.recording.clickToStart,
           showDuration: false
         };
 
@@ -44,8 +46,8 @@ export default function RecordingStateManager({
           containerClass: "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700",
           headerClass: "text-blue-700 dark:text-blue-300",
           icon: <Clock className="w-5 h-5 text-blue-500 animate-spin" />,
-          title: "请求权限",
-          subtitle: "正在请求麦克风访问权限...",
+          title: t.recording.requestingPermission,
+          subtitle: t.recording.requestingMicAccess,
           showDuration: false
         };
 
@@ -54,8 +56,8 @@ export default function RecordingStateManager({
           containerClass: "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700",
           headerClass: "text-red-700 dark:text-red-300",
           icon: <Mic className="w-5 h-5 text-red-500 animate-recording-pulse" />,
-          title: "录制中",
-          subtitle: "正在录制音频，请保持安静...",
+          title: t.recording.recordingInProgress,
+          subtitle: t.recording.keepQuiet,
           showDuration: true
         };
 
@@ -64,8 +66,8 @@ export default function RecordingStateManager({
           containerClass: "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700",
           headerClass: "text-yellow-700 dark:text-yellow-300",
           icon: <Clock className="w-5 h-5 text-yellow-500 animate-spin" />,
-          title: "处理中",
-          subtitle: "正在处理录音文件...",
+          title: t.recording.processingAudio,
+          subtitle: t.recording.processingFile,
           showDuration: true
         };
 
@@ -74,8 +76,8 @@ export default function RecordingStateManager({
           containerClass: "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700",
           headerClass: "text-green-700 dark:text-green-300",
           icon: <CheckCircle className="w-5 h-5 text-green-500" />,
-          title: "录制完成",
-          subtitle: "录音已成功保存",
+          title: t.recording.recordingCompleted,
+          subtitle: t.recording.recordingSaved,
           showDuration: true
         };
 
@@ -84,8 +86,8 @@ export default function RecordingStateManager({
           containerClass: "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700",
           headerClass: "text-red-700 dark:text-red-300",
           icon: <AlertCircle className="w-5 h-5 text-red-500" />,
-          title: "录制错误",
-          subtitle: error || "录制过程中发生错误",
+          title: t.recording.recordingError,
+          subtitle: error || t.recording.errorOccurred,
           showDuration: false
         };
 
@@ -94,8 +96,8 @@ export default function RecordingStateManager({
           containerClass: "bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700",
           headerClass: "text-gray-700 dark:text-gray-300",
           icon: <Mic className="w-5 h-5 text-gray-500" />,
-          title: "未知状态",
-          subtitle: "状态未知",
+          title: t.recording.unknownStatus,
+          subtitle: t.recording.statusUnknown,
           showDuration: false
         };
     }
@@ -130,7 +132,7 @@ export default function RecordingStateManager({
               {formatDuration(duration)}
             </div>
             <div className="text-xs text-gray-500 dark:text-gray-400">
-              录制时长
+              {t.recording.recordingDuration}
             </div>
           </div>
         )}
@@ -159,7 +161,7 @@ export default function RecordingStateManager({
             <div className="bg-yellow-500 h-2 rounded-full animate-pulse w-full" />
           </div>
           <div className="text-center text-xs text-gray-500 dark:text-gray-400 mt-1">
-            处理中，请稍候...
+            {t.recording.processingPleaseWait}
           </div>
         </div>
       )}

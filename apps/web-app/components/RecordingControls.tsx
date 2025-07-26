@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { RecordingStatus } from "@/types/recording";
 import { Mic, Square, Loader2 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import RecordingIndicator from "./RecordingIndicator";
 
 export interface RecordingControlsProps {
@@ -20,6 +21,7 @@ export default function RecordingControls({
   disabled = false,
   className = ""
 }: RecordingControlsProps) {
+  const { t } = useLanguage();
   const isRecording = status === RecordingStatus.RECORDING;
   const isProcessing = status === RecordingStatus.PROCESSING;
   const isRequestingPermission = status === RecordingStatus.REQUESTING_PERMISSION;
@@ -43,7 +45,7 @@ export default function RecordingControls({
       return (
         <>
           <Loader2 className="animate-spin" />
-          请求权限中...
+          {t.recording.requestPermission}...
         </>
       );
     }
@@ -51,7 +53,7 @@ export default function RecordingControls({
     return (
       <>
         <Mic />
-        开始录制
+        {t.recording.startRecording}
       </>
     );
   };
@@ -61,7 +63,7 @@ export default function RecordingControls({
       return (
         <>
           <Loader2 className="animate-spin" />
-          处理中...
+          {t.common.processing}...
         </>
       );
     }
@@ -69,7 +71,7 @@ export default function RecordingControls({
     return (
       <>
         <Square />
-        停止录制
+        {t.recording.stopRecording}
       </>
     );
   };

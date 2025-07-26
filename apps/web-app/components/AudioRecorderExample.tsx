@@ -2,8 +2,10 @@
 
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import { RecordingStatus } from '@/types/recording';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function AudioRecorderExample() {
+  const { t } = useLanguage();
   const {
     status,
     duration,
@@ -47,18 +49,18 @@ export default function AudioRecorderExample() {
 
   return (
     <div className="p-6 max-w-md mx-auto bg-white rounded-lg shadow-md">
-      <h2 className="text-xl font-bold mb-4">Audio Recorder Demo</h2>
+      <h2 className="text-xl font-bold mb-4">{t.recording.demoTitle}</h2>
       
       {/* Status Display */}
       <div className="mb-4">
         <p className={`font-medium ${getStatusColor()}`}>
-          Status: {status}
+          {t.recording.status}: {status}
         </p>
         <p className="text-sm text-gray-600">
-          Duration: {formatDuration(duration)}
+          {t.recording.duration}: {formatDuration(duration)}
         </p>
         <p className="text-sm text-gray-600">
-          Remaining: {formatDuration(getRemainingTime())}
+          {t.recording.remaining}: {formatDuration(getRemainingTime())}
         </p>
       </div>
 
@@ -80,7 +82,7 @@ export default function AudioRecorderExample() {
             onClick={clearError}
             className="mt-2 text-xs underline hover:no-underline"
           >
-            Clear Error
+            {t.recording.clearError}
           </button>
         </div>
       )}
@@ -93,7 +95,7 @@ export default function AudioRecorderExample() {
             disabled={status === RecordingStatus.REQUESTING_PERMISSION}
             className="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
           >
-            {status === RecordingStatus.REQUESTING_PERMISSION ? 'Requesting...' : 'Request Permission'}
+            {status === RecordingStatus.REQUESTING_PERMISSION ? t.recording.requesting : t.recording.requestPermission}
           </button>
         )}
 
@@ -102,7 +104,7 @@ export default function AudioRecorderExample() {
             onClick={startRecording}
             className="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
           >
-            Start Recording
+            {t.recording.startRecording}
           </button>
         )}
 
@@ -111,16 +113,16 @@ export default function AudioRecorderExample() {
             onClick={stopRecording}
             className="w-full px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
           >
-            Stop Recording
+            {t.recording.stopRecording}
           </button>
         )}
       </div>
 
       {/* Debug Info */}
       <div className="mt-4 p-3 bg-gray-100 rounded text-xs">
-        <p>Permission: {hasPermission}</p>
-        <p>Can Record: {canRecord ? 'Yes' : 'No'}</p>
-        <p>Is Recording: {isRecording ? 'Yes' : 'No'}</p>
+        <p>{t.recording.permission}: {hasPermission}</p>
+        <p>{t.recording.canRecord}: {canRecord ? t.recording.yes : t.recording.no}</p>
+        <p>{t.recording.recording}: {isRecording ? t.recording.yes : t.recording.no}</p>
       </div>
     </div>
   );

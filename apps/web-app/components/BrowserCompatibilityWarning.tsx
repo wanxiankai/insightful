@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { browserCompatibility, CompatibilityResult } from '@/lib/browser-compatibility';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface BrowserCompatibilityWarningProps {
   onDismiss?: () => void;
@@ -14,6 +15,7 @@ export default function BrowserCompatibilityWarning({
   onDismiss,
   showOnPartialSupport = true
 }: BrowserCompatibilityWarningProps) {
+  const { t } = useLanguage();
   const [compatibility, setCompatibility] = useState<CompatibilityResult | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
@@ -73,17 +75,17 @@ export default function BrowserCompatibilityWarning({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span className="text-yellow-600">⚠️</span>
-            Browser Compatibility Warning
+            {t.recording.compatibilityWarning}
           </DialogTitle>
           <DialogDescription>
-            Your browser has limited support for recording features.
+            {t.recording.limitedSupport}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           {/* Browser Info */}
           <div className="bg-gray-50 p-3 rounded-lg">
-            <h4 className="font-medium text-sm mb-1">Current Browser</h4>
+            <h4 className="font-medium text-sm mb-1">{t.recording.currentBrowser}</h4>
             <p className="text-sm text-gray-600">
               {browserInfo.name} {browserInfo.version}
             </p>
@@ -92,7 +94,7 @@ export default function BrowserCompatibilityWarning({
           {/* Missing Features */}
           {missingFeatures.length > 0 && (
             <div>
-              <h4 className="font-medium text-sm mb-2">Missing Features</h4>
+              <h4 className="font-medium text-sm mb-2">{t.recording.missingFeatures}</h4>
               <ul className="text-sm text-red-600 space-y-1">
                 {missingFeatures.map((feature, index) => (
                   <li key={index} className="flex items-center gap-2">
@@ -107,7 +109,7 @@ export default function BrowserCompatibilityWarning({
           {/* Warnings */}
           {browserInfo.warnings.length > 0 && (
             <div>
-              <h4 className="font-medium text-sm mb-2">Warnings</h4>
+              <h4 className="font-medium text-sm mb-2">{t.recording.warnings}</h4>
               <ul className="text-sm text-yellow-700 space-y-1">
                 {browserInfo.warnings.map((warning, index) => (
                   <li key={index} className="flex items-start gap-2">
@@ -122,7 +124,7 @@ export default function BrowserCompatibilityWarning({
           {/* Fallback Options */}
           {fallbackOptions.length > 0 && (
             <div>
-              <h4 className="font-medium text-sm mb-2">Available Options</h4>
+              <h4 className="font-medium text-sm mb-2">{t.recording.availableOptions}</h4>
               <ul className="text-sm text-blue-600 space-y-1">
                 {fallbackOptions.map((option, index) => (
                   <li key={index} className="flex items-start gap-2">
@@ -137,7 +139,7 @@ export default function BrowserCompatibilityWarning({
           {/* Recommendations */}
           {upgradeRecommendations.length > 0 && (
             <div>
-              <h4 className="font-medium text-sm mb-2">Recommendations</h4>
+              <h4 className="font-medium text-sm mb-2">{t.recording.recommendations}</h4>
               <ul className="text-sm text-green-600 space-y-1">
                 {upgradeRecommendations.map((recommendation, index) => (
                   <li key={index} className="flex items-start gap-2">
@@ -157,7 +159,7 @@ export default function BrowserCompatibilityWarning({
                 className="flex-1"
                 variant="default"
               >
-                Upgrade Browser
+                {t.recording.upgradebrowser}
               </Button>
             )}
             <Button 
@@ -165,13 +167,13 @@ export default function BrowserCompatibilityWarning({
               variant="outline"
               className="flex-1"
             >
-              Continue Anyway
+              {t.recording.continueAnyway}
             </Button>
           </div>
 
           {/* Additional Help */}
           <div className="text-xs text-gray-500 text-center pt-2 border-t">
-            For technical support, please contact our help desk
+            {t.recording.technicalSupport}
           </div>
         </div>
       </DialogContent>
