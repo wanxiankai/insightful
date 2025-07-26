@@ -89,28 +89,59 @@ export class BrowserCompatibilityChecker {
       return this.browserInfo;
     }
 
-    const userAgent = navigator.userAgent;
-    const browserData = this.parseBrowserInfo(userAgent);
-    const supportedFeatures = this.checkSupportedFeatures();
-    const warnings = this.generateWarnings(browserData, supportedFeatures);
-    const recommendations = this.generateRecommendations(browserData, supportedFeatures);
+    try {
+      const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+      const browserData = this.parseBrowserInfo(userAgent);
+      const supportedFeatures = this.checkSupportedFeatures();
+      const warnings = this.generateWarnings(browserData, supportedFeatures);
+      const recommendations = this.generateRecommendations(browserData, supportedFeatures);
 
-    this.browserInfo = {
-      name: browserData.name,
-      version: browserData.version,
-      isSupported: this.isBrowserSupported(browserData, supportedFeatures),
-      supportedFeatures,
-      warnings,
-      recommendations
-    };
+      this.browserInfo = {
+        name: browserData.name,
+        version: browserData.version,
+        isSupported: this.isBrowserSupported(browserData, supportedFeatures),
+        supportedFeatures,
+        warnings,
+        recommendations
+      };
 
-    return this.browserInfo;
+      return this.browserInfo;
+    } catch (error: any) {
+      console.debug('Failed to get browser info:', error);
+      
+      // Return fallback browser info
+      this.browserInfo = {
+        name: 'unknown',
+        version: '0',
+        isSupported: false,
+        supportedFeatures: {
+          mediaRecorder: false,
+          getUserMedia: false,
+          webAudio: false,
+          webRTC: false,
+          localStorage: false,
+          indexedDB: false,
+          serviceWorker: false,
+          webAssembly: false,
+          audioWorklet: false,
+          mediaDevices: false,
+          permissions: false
+        },
+        warnings: ['Browser compatibility check failed'],
+        recommendations: ['Please use a modern browser for full functionality']
+      };
+      
+      return this.browserInfo;
+    }
   }
 
   /**
    * Parse browser information from user agent
    */
   private parseBrowserInfo(userAgent: string): { name: string; version: string; versionNumber: number } {
+    if (!userAgent) {
+      return { name: 'unknown', version: '0', versionNumber: 0 };
+    }
     let name = 'unknown';
     let version = '0';
     let versionNumber = 0;
@@ -187,21 +218,38 @@ export class BrowserCompatibilityChecker {
    * Check MediaRecorder API support
    */
   private checkMediaRecorderSupport(): boolean {
-    if (!window.MediaRecorder) {
+    try {
+      if (!window.MediaRecorder || typeof MediaRecorder.isTypeSupported !== 'function') {
+        return false;
+      }
+
+      // Check if any supported MIME type is available
+      return SUPPORTED_MIME_TYPES.some(mimeType => {
+        try {
+          return MediaRecorder.isTypeSupported(mimeType);
+        } catch (error) {
+          console.debug(`MIME type check failed for ${mimeType}:`, error);
+          return false;
+        }
+      });
+    } catch (error) {
+      console.debug('MediaRecorder support check failed:', error);
       return false;
     }
-
-    // Check if any supported MIME type is available
-    return SUPPORTED_MIME_TYPES.some(mimeType => 
-      MediaRecorder.isTypeSupported(mimeType)
-    );
   }
 
   /**
    * Check getUserMedia support
    */
   private checkGetUserMediaSupport(): boolean {
-    return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+    try {
+      return !!(typeof navigator !== 'undefined' &&
+               navigator.mediaDevices && 
+               typeof navigator.mediaDevices.getUserMedia === 'function');
+    } catch (error) {
+      console.debug('getUserMedia support check failed:', error);
+      return false;
+    }
   }
 
   /**
@@ -243,7 +291,12 @@ export class BrowserCompatibilityChecker {
    * Check Service Worker support
    */
   private checkServiceWorkerSupport(): boolean {
-    return 'serviceWorker' in navigator;
+    try {
+      return typeof navigator !== 'undefined' && 'serviceWorker' in navigator;
+    } catch (error) {
+      console.debug('Service Worker support check failed:', error);
+      return false;
+    }
   }
 
   /**
@@ -257,21 +310,52 @@ export class BrowserCompatibilityChecker {
    * Check AudioWorklet support
    */
   private checkAudioWorkletSupport(): boolean {
-    return !!(window.AudioContext && AudioContext.prototype.audioWorklet);
+    try {
+      if (!window.AudioContext) {
+        return false;
+      }
+      
+      // Create a temporary AudioContext to check for audioWorklet support
+      const tempContext = new AudioContext();
+      const hasAudioWorklet = !!(tempContext.audioWorklet);
+      
+      // Close the temporary context to free resources
+      if (tempContext.state !== 'closed') {
+        tempContext.close();
+      }
+      
+      return hasAudioWorklet;
+    } catch (error) {
+      // If any error occurs, assume audioWorklet is not supported
+      console.debug('AudioWorklet support check failed:', error);
+      return false;
+    }
   }
 
   /**
    * Check MediaDevices support
    */
   private checkMediaDevicesSupport(): boolean {
-    return !!navigator.mediaDevices;
+    try {
+      return !!(typeof navigator !== 'undefined' && navigator.mediaDevices);
+    } catch (error) {
+      console.debug('MediaDevices support check failed:', error);
+      return false;
+    }
   }
 
   /**
    * Check Permissions API support
    */
   private checkPermissionsSupport(): boolean {
-    return !!(navigator.permissions && navigator.permissions.query);
+    try {
+      return !!(typeof navigator !== 'undefined' &&
+               navigator.permissions && 
+               typeof navigator.permissions.query === 'function');
+    } catch (error) {
+      console.debug('Permissions API support check failed:', error);
+      return false;
+    }
   }
 
   /**
@@ -439,18 +523,38 @@ export class BrowserCompatibilityChecker {
    * Check if running on mobile browser
    */
   private isMobileBrowser(): boolean {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    try {
+      return typeof navigator !== 'undefined' && 
+             /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    } catch (error) {
+      console.debug('Mobile browser check failed:', error);
+      return false;
+    }
   }
 
   /**
    * Get best supported MIME type for current browser
    */
   public getBestSupportedMimeType(): string {
-    for (const mimeType of SUPPORTED_MIME_TYPES) {
-      if (MediaRecorder.isTypeSupported(mimeType)) {
-        return mimeType;
+    try {
+      if (!window.MediaRecorder || typeof MediaRecorder.isTypeSupported !== 'function') {
+        return 'audio/webm'; // fallback
       }
+
+      for (const mimeType of SUPPORTED_MIME_TYPES) {
+        try {
+          if (MediaRecorder.isTypeSupported(mimeType)) {
+            return mimeType;
+          }
+        } catch (error) {
+          console.debug(`MIME type check failed for ${mimeType}:`, error);
+          continue;
+        }
+      }
+    } catch (error) {
+      console.debug('getBestSupportedMimeType failed:', error);
     }
+    
     return 'audio/webm'; // fallback
   }
 
@@ -458,9 +562,23 @@ export class BrowserCompatibilityChecker {
    * Get all supported MIME types for current browser
    */
   public getSupportedMimeTypes(): string[] {
-    return SUPPORTED_MIME_TYPES.filter(mimeType => 
-      MediaRecorder.isTypeSupported(mimeType)
-    );
+    try {
+      if (!window.MediaRecorder || typeof MediaRecorder.isTypeSupported !== 'function') {
+        return ['audio/webm']; // fallback
+      }
+
+      return SUPPORTED_MIME_TYPES.filter(mimeType => {
+        try {
+          return MediaRecorder.isTypeSupported(mimeType);
+        } catch (error) {
+          console.debug(`MIME type check failed for ${mimeType}:`, error);
+          return false;
+        }
+      });
+    } catch (error) {
+      console.debug('getSupportedMimeTypes failed:', error);
+      return ['audio/webm']; // fallback
+    }
   }
 
   /**

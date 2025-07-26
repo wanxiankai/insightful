@@ -144,36 +144,51 @@ export default function AudioRecorder({
 
   // Check browser support with comprehensive compatibility checking
   const checkBrowserSupport = useCallback((): boolean => {
-    const compatibility = browserCompatibility.checkCompatibility();
-    
-    if (!compatibility.isPartiallySupported) {
-      const message = browserCompatibility.getUnsupportedBrowserMessage();
+    try {
+      const compatibility = browserCompatibility.checkCompatibility();
+      
+      if (!compatibility.isPartiallySupported) {
+        const message = browserCompatibility.getUnsupportedBrowserMessage();
+        handleError(
+          RECORDING_ERROR_CODES.UNSUPPORTED_BROWSER,
+          message,
+          {
+            browserInfo: compatibility.browserInfo,
+            missingFeatures: compatibility.missingFeatures,
+            recommendations: compatibility.upgradeRecommendations
+          }
+        );
+        return false;
+      }
+
+      // Log warnings for partial support
+      if (!compatibility.isFullySupported) {
+        console.warn('Browser has partial recording support:', {
+          missingFeatures: compatibility.missingFeatures,
+          warnings: compatibility.browserInfo.warnings,
+          fallbackOptions: compatibility.fallbackOptions
+        });
+      }
+    } catch (error: any) {
+      console.error('Browser compatibility check failed:', error);
       handleError(
         RECORDING_ERROR_CODES.UNSUPPORTED_BROWSER,
-        message,
-        {
-          browserInfo: compatibility.browserInfo,
-          missingFeatures: compatibility.missingFeatures,
-          recommendations: compatibility.upgradeRecommendations
-        }
+        `Browser compatibility check failed: ${error.message}`,
+        error
       );
       return false;
     }
 
-    // Log warnings for partial support
-    if (!compatibility.isFullySupported) {
-      console.warn('Browser has partial recording support:', {
-        missingFeatures: compatibility.missingFeatures,
-        warnings: compatibility.browserInfo.warnings,
-        fallbackOptions: compatibility.fallbackOptions
-      });
-    }
-
     // Use best supported MIME type instead of hardcoded one
-    const bestMimeType = browserCompatibility.getBestSupportedMimeType();
-    if (bestMimeType !== DEFAULT_MEDIA_RECORDER_CONFIG.mimeType) {
-      console.log(`Using best supported MIME type: ${bestMimeType}`);
-      DEFAULT_MEDIA_RECORDER_CONFIG.mimeType = bestMimeType;
+    try {
+      const bestMimeType = browserCompatibility.getBestSupportedMimeType();
+      if (bestMimeType !== DEFAULT_MEDIA_RECORDER_CONFIG.mimeType) {
+        console.log(`Using best supported MIME type: ${bestMimeType}`);
+        DEFAULT_MEDIA_RECORDER_CONFIG.mimeType = bestMimeType;
+      }
+    } catch (error: any) {
+      console.warn('Failed to get best supported MIME type:', error);
+      // Continue with default MIME type
     }
 
     return true;

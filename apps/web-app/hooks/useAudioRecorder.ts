@@ -123,23 +123,32 @@ export function useAudioRecorder({
 
   // Check browser support with comprehensive compatibility checking
   const checkBrowserSupport = useCallback((): boolean => {
-    const compatibility = browserCompatibility.checkCompatibility();
-    
-    if (!compatibility.isPartiallySupported) {
-      const message = browserCompatibility.getUnsupportedBrowserMessage();
+    try {
+      const compatibility = browserCompatibility.checkCompatibility();
+      
+      if (!compatibility.isPartiallySupported) {
+        const message = browserCompatibility.getUnsupportedBrowserMessage();
+        handleError(
+          RECORDING_ERROR_CODES.UNSUPPORTED_BROWSER,
+          message
+        );
+        return false;
+      }
+
+      // Log warnings for partial support
+      if (!compatibility.isFullySupported) {
+        console.warn('Browser has partial recording support:', {
+          missingFeatures: compatibility.missingFeatures,
+          warnings: compatibility.browserInfo.warnings
+        });
+      }
+    } catch (error: any) {
+      console.error('Browser compatibility check failed:', error);
       handleError(
         RECORDING_ERROR_CODES.UNSUPPORTED_BROWSER,
-        message
+        `Browser compatibility check failed: ${error.message}`
       );
       return false;
-    }
-
-    // Log warnings for partial support
-    if (!compatibility.isFullySupported) {
-      console.warn('Browser has partial recording support:', {
-        missingFeatures: compatibility.missingFeatures,
-        warnings: compatibility.browserInfo.warnings
-      });
     }
 
     return true;
@@ -203,8 +212,13 @@ export function useAudioRecorder({
       const config: MediaRecorderOptions = {};
       
       // Use best supported mime type
-      const bestMimeType = browserCompatibility.getBestSupportedMimeType();
-      config.mimeType = bestMimeType;
+      try {
+        const bestMimeType = browserCompatibility.getBestSupportedMimeType();
+        config.mimeType = bestMimeType;
+      } catch (error: any) {
+        console.warn('Failed to get best supported MIME type:', error);
+        config.mimeType = 'audio/webm'; // fallback
+      }
       
       if (DEFAULT_MEDIA_RECORDER_CONFIG.audioBitsPerSecond) {
         config.audioBitsPerSecond = DEFAULT_MEDIA_RECORDER_CONFIG.audioBitsPerSecond;
