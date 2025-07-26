@@ -5,6 +5,7 @@ import { RecordingStatus } from "@/types/recording";
 import { Mic, Square, Loader2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import RecordingIndicator from "./RecordingIndicator";
+import { memo, useMemo, useCallback } from "react";
 
 export interface RecordingControlsProps {
   status: RecordingStatus;
@@ -14,7 +15,7 @@ export interface RecordingControlsProps {
   className?: string;
 }
 
-export default function RecordingControls({
+const RecordingControls = memo(function RecordingControls({
   status,
   onStart,
   onStop,
@@ -22,26 +23,30 @@ export default function RecordingControls({
   className = ""
 }: RecordingControlsProps) {
   const { t } = useLanguage();
-  const isRecording = status === RecordingStatus.RECORDING;
-  const isProcessing = status === RecordingStatus.PROCESSING;
-  const isRequestingPermission = status === RecordingStatus.REQUESTING_PERMISSION;
-  const isIdle = status === RecordingStatus.IDLE;
-  const hasError = status === RecordingStatus.ERROR;
+  
+  // Memoized status calculations to avoid recalculation on every render
+  const statusFlags = useMemo(() => ({
+    isRecording: status === RecordingStatus.RECORDING,
+    isProcessing: status === RecordingStatus.PROCESSING,
+    isRequestingPermission: status === RecordingStatus.REQUESTING_PERMISSION,
+    isIdle: status === RecordingStatus.IDLE,
+    hasError: status === RecordingStatus.ERROR
+  }), [status]);
 
-  // Determine if start button should be disabled
-  const startDisabled = disabled || 
-    isRecording || 
-    isProcessing || 
-    isRequestingPermission;
+  // Memoized button disabled states
+  const buttonStates = useMemo(() => ({
+    startDisabled: disabled || 
+      statusFlags.isRecording || 
+      statusFlags.isProcessing || 
+      statusFlags.isRequestingPermission,
+    stopDisabled: disabled || 
+      !statusFlags.isRecording || 
+      statusFlags.isProcessing
+  }), [disabled, statusFlags]);
 
-  // Determine if stop button should be disabled
-  const stopDisabled = disabled || 
-    !isRecording || 
-    isProcessing;
-
-  // Get button text and icon based on status
-  const getStartButtonContent = () => {
-    if (isRequestingPermission) {
+  // Memoized button content to avoid recreation
+  const startButtonContent = useMemo(() => {
+    if (statusFlags.isRequestingPermission) {
       return (
         <>
           <Loader2 className="animate-spin" />
@@ -56,10 +61,10 @@ export default function RecordingControls({
         {t.recording.startRecording}
       </>
     );
-  };
+  }, [statusFlags.isRequestingPermission, t.recording.requestPermission, t.recording.startRecording]);
 
-  const getStopButtonContent = () => {
-    if (isProcessing) {
+  const stopButtonContent = useMemo(() => {
+    if (statusFlags.isProcessing) {
       return (
         <>
           <Loader2 className="animate-spin" />
@@ -74,7 +79,20 @@ export default function RecordingControls({
         {t.recording.stopRecording}
       </>
     );
-  };
+  }, [statusFlags.isProcessing, t.common.processing, t.recording.stopRecording]);
+
+  // Memoized callbacks to prevent unnecessary re-renders of child components
+  const handleStart = useCallback(() => {
+    if (!buttonStates.startDisabled) {
+      onStart();
+    }
+  }, [onStart, buttonStates.startDisabled]);
+
+  const handleStop = useCallback(() => {
+    if (!buttonStates.stopDisabled) {
+      onStop();
+    }
+  }, [onStop, buttonStates.stopDisabled]);
 
   return (
     <div className={`flex items-center gap-4 ${className}`}>
@@ -89,31 +107,33 @@ export default function RecordingControls({
       {/* Control Buttons */}
       <div className="flex gap-3">
         {/* Start Recording Button */}
-        {!isRecording && (
+        {!statusFlags.isRecording && (
           <Button
-            onClick={onStart}
-            disabled={startDisabled}
-            variant={hasError ? "outline" : "default"}
+            onClick={handleStart}
+            disabled={buttonStates.startDisabled}
+            variant={statusFlags.hasError ? "outline" : "default"}
             size="lg"
             className="min-w-[120px]"
           >
-            {getStartButtonContent()}
+            {startButtonContent}
           </Button>
         )}
 
         {/* Stop Recording Button */}
-        {isRecording && (
+        {statusFlags.isRecording && (
           <Button
-            onClick={onStop}
-            disabled={stopDisabled}
+            onClick={handleStop}
+            disabled={buttonStates.stopDisabled}
             variant="destructive"
             size="lg"
             className="min-w-[120px]"
           >
-            {getStopButtonContent()}
+            {stopButtonContent}
           </Button>
         )}
       </div>
     </div>
   );
-}
+});
+
+export default RecordingControls;

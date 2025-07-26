@@ -15,6 +15,8 @@ import {
 } from '@/types/recording';
 import { recordingErrorRecovery } from '@/lib/recording-error-recovery';
 import { browserCompatibility } from '@/lib/browser-compatibility';
+import { performanceMonitor } from '@/lib/performance-monitor';
+import { memoryOptimizer } from '@/lib/memory-optimizer';
 
 // Default configuration for MediaRecorder
 const DEFAULT_MEDIA_RECORDER_CONFIG: MediaRecorderConfig = {
@@ -257,7 +259,7 @@ export default function AudioRecorder({
     return true;
   }, []);
 
-  // Process and collect audio data chunks with enhanced error handling
+  // Process and collect audio data chunks with enhanced error handling and performance optimization
   const processAudioChunk = useCallback((chunk: Blob) => {
     // Validate the chunk before processing
     if (!validateAudioChunk(chunk)) {
@@ -268,11 +270,29 @@ export default function AudioRecorder({
     // Add chunk to collection
     audioChunksRef.current.push(chunk);
     
-    // Check memory usage and handle memory limits
-    const memoryCheck = recordingErrorRecovery.checkMemoryUsage(audioChunksRef.current);
+    // Performance monitoring: Update memory metrics
+    performanceMonitor.updateMemoryMetrics(audioChunksRef.current);
     
-    if (memoryCheck.isNearLimit) {
-      console.warn('Memory usage approaching limit:', memoryCheck.totalSize);
+    // Memory optimization: Monitor and optimize if needed
+    const memoryMonitoring = memoryOptimizer.monitorMemoryUsage(audioChunksRef.current);
+    
+    if (memoryMonitoring.shouldOptimize && memoryMonitoring.strategy) {
+      console.warn('Memory optimization triggered:', memoryMonitoring.stats);
+      
+      // Apply optimization strategy asynchronously to avoid blocking
+      memoryOptimizer.optimizeChunks(audioChunksRef.current, memoryMonitoring.strategy)
+        .then(optimizedChunks => {
+          audioChunksRef.current = optimizedChunks;
+          console.log('Memory optimization completed');
+        })
+        .catch(error => {
+          console.error('Memory optimization failed:', error);
+        });
+    }
+    
+    // Check critical memory usage
+    if (memoryMonitoring.stats.memoryPressure === 'critical') {
+      console.error('Critical memory usage detected:', memoryMonitoring.stats.totalSize);
       
       // Save current data for recovery before stopping
       if (state.session) {
@@ -285,22 +305,28 @@ export default function AudioRecorder({
       
       handleError(
         RECORDING_ERROR_CODES.MEMORY_LIMIT_EXCEEDED,
-        'Recording stopped due to memory limits. Data has been saved for recovery.'
+        'Recording stopped due to critical memory usage. Data has been saved for recovery.'
       );
       return;
     }
     
-    // Log chunk processing for debugging
-    console.log('Audio chunk processed:', {
-      chunkSize: chunk.size,
-      chunkType: chunk.type,
-      totalChunks: audioChunksRef.current.length,
-      totalSize: memoryCheck.totalSize,
-      timestamp: new Date().toISOString()
-    });
+    // Optimized logging - only log every 10th chunk to reduce overhead
+    if (audioChunksRef.current.length % 10 === 0) {
+      console.log('Audio chunk batch processed:', {
+        chunkSize: chunk.size,
+        chunkType: chunk.type,
+        totalChunks: audioChunksRef.current.length,
+        totalSize: memoryMonitoring.stats.totalSize,
+        memoryPressure: memoryMonitoring.stats.memoryPressure,
+        timestamp: new Date().toISOString()
+      });
+    }
 
-    // Update state with new chunks array
-    updateState({ audioChunks: [...audioChunksRef.current] });
+    // Optimized state update - use functional update to avoid unnecessary re-renders
+    updateState(prevState => ({
+      ...prevState,
+      audioChunks: [...audioChunksRef.current]
+    }));
 
     // Periodically save recovery data (every 10 seconds)
     const now = Date.now();
@@ -700,7 +726,7 @@ export default function AudioRecorder({
     return baseMetadata;
   }, [generateFileName]);
 
-  // Start recording function with enhanced lifecycle management
+  // Start recording function with enhanced lifecycle management and performance monitoring
   const startRecording = useCallback(async (): Promise<boolean> => {
     // Validate state transition before starting
     const canStart = validateStateTransition(state.status, RecordingStatus.RECORDING);
@@ -717,6 +743,18 @@ export default function AudioRecorder({
     }
 
     try {
+      // Performance monitoring: Start recording monitoring
+      performanceMonitor.startRecordingMonitoring();
+      
+      // Memory optimization: Check if system can handle estimated memory requirements
+      const estimatedMemory = memoryOptimizer.estimateMemoryRequirements(maxDuration);
+      const canHandle = await memoryOptimizer.canHandleMemoryRequirements(estimatedMemory);
+      
+      if (!canHandle) {
+        console.warn('System may not have enough memory for recording:', estimatedMemory);
+        // Continue anyway but warn user
+      }
+
       // Reset previous state and prepare for new recording
       audioChunksRef.current = [];
       updateState({
@@ -775,14 +813,21 @@ export default function AudioRecorder({
         session
       });
 
-      // Start MediaRecorder with data collection interval
-      mediaRecorder.start(1000); // Collect data every second
+      // Performance mark for timing analysis
+      if (typeof performance.mark === 'function') {
+        performance.mark('recording-start');
+      }
+
+      // Start MediaRecorder with optimized data collection interval
+      // Use shorter interval for better responsiveness but balance with performance
+      mediaRecorder.start(500); // Collect data every 500ms for better memory management
       startTimer();
       
       console.log('Recording started successfully', {
         sessionId: session.id,
         startTime: session.startTime,
         mimeType: mediaRecorder.mimeType,
+        estimatedMemory,
         stateTransition: `${RecordingStatus.IDLE} -> ${RecordingStatus.RECORDING}`
       });
       
@@ -805,6 +850,7 @@ export default function AudioRecorder({
   }, [
     state.hasPermission,
     state.status,
+    maxDuration,
     requestPermission,
     createMediaRecorder,
     generateSessionId,
