@@ -4,9 +4,23 @@
 
 [**English**](./README.md) | [**中文**](./README.zh-CN.md)
 
-**Insightful** is a full-stack web application that leverages the power of Large Language Models to automatically transcribe and summarize your meeting recordings. Simply upload an audio or video file, and our asynchronous AI pipeline will generate a concise summary and a list of actionable items for you.
+**Insightful** is a full-stack web application that leverages the power of Large Language Models to automatically transcribe and summarize your meeting recordings. Upload an audio/video file or **record directly in your browser**, and our asynchronous AI pipeline will generate a concise summary and actionable items for you.
 
 This project is built with a modern, type-safe, and scalable tech stack, designed to showcase advanced full-stack development, Monorepo architecture, and seamless deployment practices.
+
+## 🆕 Latest Updates
+
+### 🎙️ Live Recording Module (NEW)
+- **Browser-based recording** with real-time audio capture
+- **Instant processing** - recordings automatically uploaded and analyzed
+- **Smart error recovery** and cross-browser compatibility
+- **Visual recording controls** with duration tracking and status indicators
+
+### 📱 Enhanced User Experience (UPDATED)
+- **Fixed upload zone** - stays accessible while scrolling through job history
+- **Optimized scrolling performance** - independent job list scrolling with smooth animations
+- **Responsive design improvements** - better mobile and tablet experience
+- **Touch-optimized interactions** for mobile devices
 
 ---
 
@@ -21,26 +35,71 @@ This project is built with a modern, type-safe, and scalable tech stack, designe
 - Secure file storage using Cloudflare R2 with presigned URLs
 - Support for audio and video file formats
 
-### 3. Asynchronous AI Processing
+### 3. 🎙️ Live Recording (NEW)
+- **Real-time audio recording** directly in the browser
+- **Instant processing** - recordings are automatically uploaded and analyzed
+- **Smart recording controls** with visual feedback and duration tracking
+- **Browser compatibility detection** with fallback options
+- **Error recovery system** for handling recording interruptions
+- **Optimized audio quality** with automatic format selection
+
+### 4. Asynchronous AI Processing
 - Queue-based background processing using Upstash QStash
 - Google Gemini 1.5 Pro model for audio analysis
 - Automatic generation of meeting summaries and action items
 
-### 4. Real-time Status Updates
+### 5. Real-time Status Updates
 - WebSocket connections via Supabase Realtime
 - Live task status synchronization (Uploading, Queued, Processing, Completed, Failed)
 - Optimistic UI updates for enhanced user experience
 
-### 5. Analysis Results Display
+### 6. 📱 Enhanced User Interface (UPDATED)
+- **Fixed upload zone** - remains accessible while scrolling through job history
+- **Independent job list scrolling** with smooth performance optimization
+- **Responsive design** - seamless experience across desktop, tablet, and mobile
+- **Touch-optimized interactions** for mobile devices
+
+### 7. Analysis Results Display
 - Structured meeting summaries
 - Actionable item lists with assignees and due dates
 - Comprehensive task history tracking
 
 ## 📱 Main Pages
 
-1. **Dashboard (`/`)** - Main interface with file upload zone and task list
+1. **Dashboard (`/`)** - Main interface with dual-mode upload zone (file upload + live recording) and optimized task list
 2. **Sign In (`/signin`)** - GitHub OAuth authentication
 3. **Job Details (`/job/[jobId]`)** - Detailed analysis results for specific meetings
+
+## 🎙️ Recording Features
+
+### Live Recording Capabilities
+- **Browser-based recording** using MediaRecorder API
+- **Real-time duration tracking** with visual progress indicators
+- **Automatic quality optimization** based on device capabilities
+- **Smart error handling** with recovery mechanisms
+- **Cross-browser compatibility** with fallback detection
+
+### Recording Interface
+- **Intuitive controls** - Start/Stop recording with visual feedback
+- **Duration limits** - Configurable maximum recording time (default: 30 minutes)
+- **Status indicators** - Clear visual states (Idle, Recording, Processing, Complete)
+- **Error recovery** - Automatic retry mechanisms for failed recordings
+- **Mobile optimization** - Touch-friendly controls and responsive design
+
+## 🎬 How It Works
+
+### File Upload Flow
+1. **Upload** - Drag & drop or select audio/video files
+2. **Process** - Files are securely stored and queued for AI analysis
+3. **Analyze** - Google Gemini processes the audio and generates insights
+4. **Results** - View structured summaries and actionable items
+
+### Live Recording Flow
+1. **Record** - Click to start browser-based recording
+2. **Monitor** - Real-time duration tracking with visual feedback
+3. **Complete** - Stop recording and automatic upload begins
+4. **Process** - Instant AI analysis of your recording
+5. **Results** - Get immediate insights from your live session
 
 ## 🏗️ Project Architecture
 
@@ -120,6 +179,8 @@ This project is built with a modern, type-safe, and scalable tech stack, designe
 - [Tailwind CSS](https://tailwindcss.com/)
 - [React](https://reactjs.org/) + [React DOM](https://reactjs.org/docs/react-dom.html)
 - [Lucide React](https://lucide.dev/) (Icons)
+- [React Dropzone](https://react-dropzone.js.org/) (File Upload)
+- **MediaRecorder API** (Live Recording)
 
 **Backend:**
 - [Next.js API Routes](https://nextjs.org/docs/api-routes/introduction)
@@ -138,6 +199,8 @@ This project is built with a modern, type-safe, and scalable tech stack, designe
 - [Turborepo](https://turbo.build/repo) (Monorepo Management)
 - [pnpm](https://pnpm.io/) (Package Manager)
 - [ESLint](https://eslint.org/) + [Prettier](https://prettier.io) (Code Standards)
+- [Vitest](https://vitest.dev/) (Testing Framework)
+- [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) (Component Testing)
 
 ## 🌟 Project Highlights
 
@@ -149,6 +212,10 @@ This project demonstrates modern full-stack development practices including:
 - **Serverless Architecture**: Cloud-native deployment ready
 - **AI Integration**: Advanced audio processing with LLM
 - **Security Best Practices**: OAuth authentication and secure file handling
+- **🎙️ Browser Media APIs**: Advanced MediaRecorder API integration with error handling
+- **📱 Responsive UX**: Fixed upload zone with optimized scrolling performance
+- **🔄 State Management**: Complex recording lifecycle management with React hooks
+- **🧪 Comprehensive Testing**: Unit and integration tests with Vitest
 
 ## 🏁 Getting Started
 
@@ -231,8 +298,12 @@ Insightful serves as a comprehensive showcase of modern web development practice
 - **AI/ML Integration**: Practical implementation of LLM services
 - **Cloud Infrastructure**: Serverless deployment with external service integration
 - **Developer Experience**: Monorepo setup with shared tooling and configurations
+- **🎙️ Media API Mastery**: Complex MediaRecorder API usage with cross-browser compatibility
+- **📱 Advanced UX Patterns**: Fixed positioning, smooth scrolling, and responsive design
+- **🔄 State Management**: Complex async workflows with React hooks and context
+- **🧪 Testing Excellence**: Comprehensive test coverage including UI interaction testing
 
-This project is ideal for developers looking to understand how to build production-ready applications with cutting-edge technologies and architectural patterns.
+This project is ideal for developers looking to understand how to build production-ready applications with cutting-edge technologies and architectural patterns, especially those involving real-time media processing and advanced user interactions.
 
 ## 📄 License
 
