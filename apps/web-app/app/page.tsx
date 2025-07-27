@@ -35,9 +35,9 @@ export default async function Page() {
 
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50">
+    <div className="flex h-screen flex-col bg-gray-50 overflow-hidden">
       <Header />
-      <main className="flex flex-1 flex-col items-center justify-center p-4 sm:p-6 md:p-8">
+      <main className="flex flex-1 flex-col items-center p-2 sm:p-4 md:p-6 lg:p-8 overflow-hidden">
         <ClientWrapper initialJobs={initialJobs} />
       </main>
     </div>

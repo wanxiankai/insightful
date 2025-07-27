@@ -173,24 +173,27 @@ export default function JobItem({ job, onDelete, onRename, isOptimistic = false 
         </div>
       )}
 
-      <div className="flex flex-col flex-1 min-w-0 mr-3">
+      <div className="flex flex-col flex-1 min-w-0 mr-2 sm:mr-3">
         <span className="font-medium text-gray-900 truncate text-sm sm:text-base">{job.fileName || 'Untitled Meeting'}</span>
         <span className="text-xs sm:text-sm text-gray-500">
           {new Date(job.createdAt).toLocaleString()}
         </span>
       </div>
-      <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
-        <div className={`flex items-center rounded-full text-sm font-medium ${bgColor} ${color} ${job.status === 'COMPLETED'
-          ? 'px-2 sm:px-3 py-1 space-x-0 sm:space-x-2'
-          : 'px-3 py-1 space-x-2'
+      <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 flex-shrink-0">
+        <div className={`flex items-center rounded-full text-xs sm:text-sm font-medium ${bgColor} ${color} ${job.status === 'COMPLETED'
+          ? 'px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1 space-x-0 sm:space-x-1 md:space-x-2'
+          : 'px-2 sm:px-3 py-0.5 sm:py-1 space-x-1 sm:space-x-2'
           }`}>
-          <Icon className={`h-4 w-4 ${animate}`} />
-          <span className={job.status === 'COMPLETED' ? 'hidden sm:inline' : ''}>{text}</span>
+          <Icon className={`h-3 w-3 sm:h-4 sm:w-4 ${animate}`} />
+          <span className={job.status === 'COMPLETED' ? 'hidden sm:inline' : 'hidden xs:inline sm:inline'}>{text}</span>
         </div>
 
         {job.status === 'COMPLETED' && (
-          <Button asChild variant="outline" size="sm" className="border-[#61d0de] text-[#61d0de] hover:bg-[#61d0de]/5">
-            <Link href={`/job/${job.id}`}>{t.common.viewReport}</Link>
+          <Button asChild variant="outline" size="sm" className="border-[#61d0de] text-[#61d0de] hover:bg-[#61d0de]/5 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2">
+            <Link href={`/job/${job.id}`}>
+              <span className="hidden sm:inline">{t.common.viewReport}</span>
+              <span className="sm:hidden">View</span>
+            </Link>
           </Button>
         )}
 

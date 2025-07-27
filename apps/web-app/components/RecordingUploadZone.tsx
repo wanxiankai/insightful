@@ -97,21 +97,21 @@ export default function RecordingUploadZone({ onUploadComplete }: RecordingUploa
         >
           {/* Recording info */}
           {isRecording && (
-            <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-700">
+            <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-700">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm font-medium text-red-800 dark:text-red-200">
                     {t.recording.recordingNow}
                   </p>
-                  <p className="text-xs text-red-600 dark:text-red-400">
+                  <p className="text-xs text-red-600 dark:text-red-400 truncate">
                     {t.recording.keepQuietAvoidNoise}
                   </p>
                 </div>
-                <div className="text-right">
+                <div className="text-right flex-shrink-0 ml-2">
                   <p className="text-xs text-red-600 dark:text-red-400">
                     {t.recording.remainingTime}
                   </p>
-                  <p className="text-sm font-mono font-bold text-red-800 dark:text-red-200">
+                  <p className="text-xs sm:text-sm font-mono font-bold text-red-800 dark:text-red-200">
                     {formatDuration(getRemainingTime())}
                   </p>
                 </div>
@@ -121,8 +121,8 @@ export default function RecordingUploadZone({ onUploadComplete }: RecordingUploa
 
           {/* Permission prompt */}
           {recordingStatus === 'requesting_permission' && (
-            <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
-              <p className="text-sm text-blue-800 dark:text-blue-200">
+            <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+              <p className="text-xs sm:text-sm text-blue-800 dark:text-blue-200">
                 {t.recording.allowMicrophoneAccess}
               </p>
             </div>
@@ -130,21 +130,21 @@ export default function RecordingUploadZone({ onUploadComplete }: RecordingUploa
 
           {/* Progress display */}
           {progress && (
-            <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-700">
+            <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-700">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                <p className="text-xs sm:text-sm font-medium text-yellow-800 dark:text-yellow-200 min-w-0 flex-1 truncate">
                   {progress.phase === 'recording' ? t.recording.recordingNow : 
                    progress.phase === 'uploading' ? t.recording.uploadingAudioFile : 
                    t.recording.processingAudioFile}
                 </p>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-yellow-800 dark:text-yellow-200">
+                <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0 ml-2">
+                  <span className="text-xs sm:text-sm font-semibold text-yellow-800 dark:text-yellow-200">
                     {Math.round(progress.percentage)}%
                   </span>
                   {progress.phase !== 'recording' && (
                     <button
                       onClick={handleCancel}
-                      className="text-xs px-2 py-1 bg-yellow-200 dark:bg-yellow-700 text-yellow-800 dark:text-yellow-200 rounded hover:bg-yellow-300 dark:hover:bg-yellow-600 transition-colors"
+                      className="text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 bg-yellow-200 dark:bg-yellow-700 text-yellow-800 dark:text-yellow-200 rounded hover:bg-yellow-300 dark:hover:bg-yellow-600 transition-colors"
                     >
                       {t.common.cancel}
                     </button>
@@ -152,9 +152,9 @@ export default function RecordingUploadZone({ onUploadComplete }: RecordingUploa
                 </div>
               </div>
               
-              <div className="w-full bg-yellow-200 dark:bg-yellow-700 rounded-full h-2 mb-2">
+              <div className="w-full bg-yellow-200 dark:bg-yellow-700 rounded-full h-1.5 sm:h-2 mb-2">
                 <div 
-                  className="bg-yellow-600 dark:bg-yellow-400 h-2 rounded-full transition-all duration-300 ease-in-out"
+                  className="bg-yellow-600 dark:bg-yellow-400 h-1.5 sm:h-2 rounded-full transition-all duration-300 ease-in-out"
                   style={{ width: `${Math.round(progress.percentage)}%` }}
                 />
               </div>
@@ -162,11 +162,11 @@ export default function RecordingUploadZone({ onUploadComplete }: RecordingUploa
               {/* 详细信息 */}
               {progressDetails && progress.phase === 'uploading' && (
                 <div className="flex justify-between text-xs text-yellow-600 dark:text-yellow-400">
-                  <span>
+                  <span className="truncate">
                     {formatFileSize(progressDetails.loaded)} / {formatFileSize(progressDetails.total)}
                   </span>
                   {progressDetails.speed && progressDetails.speed > 0 && (
-                    <span>
+                    <span className="flex-shrink-0 ml-2">
                       {formatSpeed(progressDetails.speed)}
                     </span>
                   )}
@@ -181,21 +181,22 @@ export default function RecordingUploadZone({ onUploadComplete }: RecordingUploa
 
           {/* Completion status */}
           {isComplete && createdJob && (
-            <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
+            <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-green-800 dark:text-green-200">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm font-medium text-green-800 dark:text-green-200">
                     {t.recording.recordingCompleted}
                   </p>
-                  <p className="text-xs text-green-600 dark:text-green-400">
+                  <p className="text-xs text-green-600 dark:text-green-400 truncate">
                     {t.recording.aiAnalysisInProgress}
                   </p>
                 </div>
                 <button
                   onClick={reset}
-                  className="text-xs px-3 py-1 bg-green-200 dark:bg-green-700 text-green-800 dark:text-green-200 rounded hover:bg-green-300 dark:hover:bg-green-600 transition-colors"
+                  className="text-xs px-2 sm:px-3 py-0.5 sm:py-1 bg-green-200 dark:bg-green-700 text-green-800 dark:text-green-200 rounded hover:bg-green-300 dark:hover:bg-green-600 transition-colors flex-shrink-0 ml-2"
                 >
-                  {t.recording.newRecording}
+                  <span className="hidden sm:inline">{t.recording.newRecording}</span>
+                  <span className="sm:hidden">New</span>
                 </button>
               </div>
             </div>

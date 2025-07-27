@@ -67,7 +67,7 @@ export default function RecordingInterface({
 
       {/* Recording Controls */}
       {layout.showControls && (
-        <div className="flex justify-center">
+        <div className="flex justify-center px-2 sm:px-0">
           <RecordingControls
             status={status}
             onStart={onStart}
@@ -80,11 +80,11 @@ export default function RecordingInterface({
 
       {/* Status-specific additional UI */}
       {status === RecordingStatus.ERROR && error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-4">
-          <h4 className="font-medium text-red-800 dark:text-red-200 mb-2">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-3 sm:p-4">
+          <h4 className="font-medium text-red-800 dark:text-red-200 mb-2 text-sm sm:text-base">
             {t.recording.errorDetails}
           </h4>
-          <p className="text-sm text-red-700 dark:text-red-300 font-mono">
+          <p className="text-xs sm:text-sm text-red-700 dark:text-red-300 font-mono break-all">
             {error}
           </p>
         </div>
@@ -92,11 +92,11 @@ export default function RecordingInterface({
 
       {/* Recording tips for idle state */}
       {status === RecordingStatus.IDLE && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
-          <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2">
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-3 sm:p-4">
+          <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2 text-sm sm:text-base">
             {t.recording.recordingTips}
           </h4>
-          <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+          <ul className="text-xs sm:text-sm text-blue-700 dark:text-blue-300 space-y-1">
             <li>• {t.recording.tip1}</li>
             <li>• {t.recording.tip2}</li>
             <li>• {t.recording.tip3}</li>
@@ -107,11 +107,11 @@ export default function RecordingInterface({
 
       {/* Success message for completed recording */}
       {status === RecordingStatus.STOPPED && (
-        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg p-4">
-          <h4 className="font-medium text-green-800 dark:text-green-200 mb-2">
+        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg p-3 sm:p-4">
+          <h4 className="font-medium text-green-800 dark:text-green-200 mb-2 text-sm sm:text-base">
             {t.recording.recordingSuccess}
           </h4>
-          <p className="text-sm text-green-700 dark:text-green-300">
+          <p className="text-xs sm:text-sm text-green-700 dark:text-green-300">
             {t.recording.successMessage} {Math.floor(duration / 60)}:{(duration % 60).toString().padStart(2, '0')}
           </p>
         </div>
