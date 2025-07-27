@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useImperativeHandle, forwardRef, useCallback } from "react";
+import { useState, useEffect, useImperativeHandle, forwardRef, useCallback, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 import JobItem, { MeetingJob } from "./JobItem";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -36,12 +36,15 @@ export interface JobListRef {
   addOptimisticJob: (job: MeetingJob) => void;
   removeOptimisticJob: (jobId: string) => void;
   refreshJobs: () => Promise<void>;
+  scrollToTop: () => void;
+  scrollToBottom: () => void;
 }
 
 const JobList = forwardRef<JobListRef, { initialJobs: MeetingJob[] }>(
   ({ initialJobs }, ref) => {
     const [jobs, setJobs] = useState<MeetingJob[]>(initialJobs || []);
     const [optimisticJobs, setOptimisticJobs] = useState<Map<string, MeetingJob>>(new Map());
+    const containerRef = useRef<HTMLDivElement>(null);
     const { t } = useLanguage();
 
     // 将 Supabase 数据转换为 MeetingJob 格式的辅助函数
@@ -213,11 +216,28 @@ const JobList = forwardRef<JobListRef, { initialJobs: MeetingJob[] }>(
       }
     };
 
+    // Scroll utility methods
+    const scrollToTop = useCallback(() => {
+      const container = containerRef.current?.parentElement;
+      if (container) {
+        container.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, []);
+
+    const scrollToBottom = useCallback(() => {
+      const container = containerRef.current?.parentElement;
+      if (container) {
+        container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+      }
+    }, []);
+
     // 暴露方法给父组件
     useImperativeHandle(ref, () => ({
       addOptimisticJob,
       removeOptimisticJob,
-      refreshJobs
+      refreshJobs,
+      scrollToTop,
+      scrollToBottom
     }));
 
     // 处理任务删除
@@ -248,9 +268,19 @@ const JobList = forwardRef<JobListRef, { initialJobs: MeetingJob[] }>(
     };
 
     return (
-      <div className="mt-6 w-full max-w-2xl">
-        {allJobs.length !== 0 && <h3 className="text-base font-semibold text-gray-800">{t.home.historyTitle}</h3>}
-        <div className="mt-2 space-y-4 relative">
+      <div ref={containerRef} className="w-full">
+        {allJobs.length !== 0 && (
+          <h3 className="text-sm sm:text-base font-semibold text-gray-800 mb-3 sm:mb-4 px-1">
+            {t.home.historyTitle}
+          </h3>
+        )}
+        <div 
+          className="space-y-3 sm:space-y-4 pb-4 sm:pb-6"
+          style={{
+            // Optimize rendering for large lists
+            willChange: allJobs.length > 20 ? 'transform' : 'auto',
+          }}
+        >
           {allJobs.map((job) => (
             <JobItem 
               key={job.id} 

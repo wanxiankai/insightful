@@ -42,35 +42,36 @@ function UploadProgressItem({
           }`}
         style={{ width: `${progress}%` }}
       />
-      <div className="relative z-10 flex items-center justify-between p-4">
-        <div className="flex items-center space-x-3">
-          <FileIcon className="h-6 w-6 text-gray-500" />
-          <div className="flex flex-col">
-            <span className="text-sm font-medium text-[#333] truncate">
+      <div className="relative z-10 flex items-center justify-between p-3 sm:p-4">
+        <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+          <FileIcon className="h-5 w-5 sm:h-6 sm:w-6 text-gray-500 flex-shrink-0" />
+          <div className="flex flex-col min-w-0 flex-1">
+            <span className="text-xs sm:text-sm font-medium text-[#333] truncate">
               {file.name}
             </span>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1 sm:space-x-2">
               <span className="text-xs text-[#666]">
                 {(file.size / 1024 / 1024).toFixed(2)} MB
               </span>
               {status === 'error' && error && (
-                <span className="text-xs text-red-600">
-                  <span className="text-gray-500 text-xs"> | </span> 
+                <span className="text-xs text-red-600 truncate">
+                  <span className="text-gray-500 text-xs hidden sm:inline"> | </span> 
+                  <span className="sm:hidden">•</span>
                   {t.common.error}: {error}
                 </span>
               )}
             </div>
           </div>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 flex-shrink-0">
           {status === 'uploading' && (
-            <span className="text-sm font-semibold text-[#61d0de]">{progress}%</span>
+            <span className="text-xs sm:text-sm font-semibold text-[#61d0de]">{progress}%</span>
           )}
           {status === 'success' && (
-            <CheckCircle className="h-5 w-5 text-[#61d0de]" />
+            <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-[#61d0de]" />
           )}
           {status === 'error' && (
-            <AlertCircle className="h-5 w-5 text-red-600" />
+            <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
           )}
         </div>
       </div>
@@ -235,57 +236,61 @@ export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
       <div className="bg-white rounded-lg shadow">
         {/* Tab Navigation */}
         <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 px-6 pt-6">
+          <nav className="flex space-x-4 sm:space-x-8 px-3 sm:px-6 pt-4 sm:pt-6">
             <button
               onClick={() => setActiveTab('upload')}
-              className={`pb-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+              className={`pb-3 sm:pb-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors duration-200 ${
                 activeTab === 'upload'
                   ? 'border-[#61d0de] text-[#61d0de]'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              <div className="flex items-center gap-2">
-                <Upload className="w-4 h-4" />
-                {t.common.uploadFile}
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Upload className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">{t.common.uploadFile}</span>
+                <span className="sm:hidden">Upload</span>
               </div>
             </button>
             <button
               onClick={() => setActiveTab('record')}
-              className={`pb-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+              className={`pb-3 sm:pb-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors duration-200 ${
                 activeTab === 'record'
                   ? 'border-[#61d0de] text-[#61d0de]'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              <div className="flex items-center gap-2">
-                <Mic className="w-4 h-4" />
-                {t.recording.newRecording}
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Mic className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">{t.recording.newRecording}</span>
+                <span className="sm:hidden">Record</span>
               </div>
             </button>
           </nav>
         </div>
 
         {/* Tab Content */}
-        <div className="p-6">
+        <div className="p-3 sm:p-4 md:p-6">
           {activeTab === 'upload' ? (
             <>
-              <h2 className="text-xl font-semibold mb-4">{t.home.uploadTitle}</h2>
+              <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">{t.home.uploadTitle}</h2>
               <div
                 {...getRootProps()}
-                className={`flex w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-10 text-center transition-colors duration-300 ${isDragActive
+                className={`flex w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 sm:p-8 md:p-10 text-center transition-colors duration-300 ${isDragActive
                   ? "border-[#61d0de] bg-[#61d0de]/5"
                   : "border-gray-300 bg-gray-50 hover:border-[#61d0de]/50 hover:bg-[#61d0de]/5"
                   }`}
               >
                 <input {...getInputProps()} />
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#61d0de]/10">
-                  <UploadCloud className="h-8 w-8 text-[#61d0de]" />
+                <div className="flex h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 items-center justify-center rounded-full bg-[#61d0de]/10">
+                  <UploadCloud className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-[#61d0de]" />
                 </div>
-                <p className="mt-4 text-base font-semibold text-gray-700">
-                  {t.common.dragDropHere} {locale === 'zh' ? '或' : 'or'}{" "}
+                <p className="mt-3 sm:mt-4 text-sm sm:text-base font-semibold text-gray-700">
+                  <span className="hidden sm:inline">
+                    {t.common.dragDropHere} {locale === 'zh' ? '或' : 'or'}{" "}
+                  </span>
                   <span className="font-bold text-[#61d0de]">{t.common.selectFile}</span>
                 </p>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-xs sm:text-sm text-gray-500">
                   {t.common.supportedFormats}
                 </p>
               </div>
@@ -297,8 +302,8 @@ export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
       </div>
       
       {uploads.length > 0 && (
-        <div className="mt-6 space-y-4">
-          <h3 className="text-base font-semibold text-gray-800">
+        <div className="mt-4 sm:mt-6 space-y-3 sm:space-y-4">
+          <h3 className="text-sm sm:text-base font-semibold text-gray-800">
             {t.common.uploading}...
           </h3>
           {uploads.map((upload) => (
