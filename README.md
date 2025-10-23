@@ -1,135 +1,277 @@
-# Turborepo starter
+# Insightful - AI-Powered Meeting Summarizer Platform
 
-This Turborepo starter is maintained by the Turborepo core team.
+![Insightful Platform](./resources/insightful_home_intro_en.png) <!-- Replace with your actual platform overview screenshot -->
 
-## Using this example
+[**English**](./README.md) | [**中文**](./README.zh-CN.md)
 
-Run the following command:
+**Insightful** is a comprehensive cross-platform solution that leverages the power of Large Language Models to automatically transcribe and summarize meeting recordings. Built as a modern monorepo, it provides seamless experiences across web and mobile platforms with shared business logic and consistent user experiences.
 
-```sh
-npx create-turbo@latest
-```
+## 🌟 Platform Overview
 
-## What's inside?
+Insightful consists of multiple applications working together to provide a unified meeting analysis experience:
 
-This Turborepo includes the following packages/apps:
+- **🌐 Web Application** - Full-featured web interface with live recording and file upload capabilities
+- **📱 Mobile Applications** - Native iOS and Android apps built with React Native (Coming Soon)
+- **🔧 Shared Packages** - Common database schemas, configurations, and utilities
 
-### Apps and Packages
+## 🚀 Current Status
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+### ✅ Completed
+- **Web Application** - Production-ready with advanced features including:
+  - Live browser-based recording with MediaRecorder API
+  - File upload with drag-and-drop interface
+  - Real-time AI processing with Google Gemini 1.5 Pro
+  - WebSocket-based live status updates
+  - Responsive design optimized for mobile browsers
+  - GitHub OAuth authentication
+  - Comprehensive testing suite
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+### 🔄 In Development
+- **Mobile Applications** - React Native implementation planned with:
+  - Native recording capabilities
+  - Offline-first architecture
+  - Push notifications for job completion
+  - Native file system integration
+  - Biometric authentication support
 
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
-```
-
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+## 🏗️ Architecture
 
 ```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+┌─────────────────────────────────────────────────────────────┐
+│                    Insightful Platform                      │
+│              AI Meeting Summarizer Ecosystem                │
+└─────────────────────────────────────────────────────────────┘
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+┌─────────────────────────────────────────────────────────────┐
+│                    Client Applications                      │
+├─────────────────────────────────────────────────────────────┤
+│  📱 Mobile Apps (React Native)    │  🌐 Web App (Next.js)   │
+│  • iOS Application               │  • Browser Interface     │
+│  • Android Application           │  • Live Recording        │
+│  • Native Recording              │  • File Upload           │
+│  • Offline Support               │  • Real-time Updates     │
+│  • Push Notifications            │  • Responsive Design     │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Shared Backend Services                  │
+├─────────────────────────────────────────────────────────────┤
+│  • Authentication (NextAuth.js + OAuth)                     │
+│  • File Storage (Cloudflare R2)                            │
+│  • AI Processing (Google Gemini 1.5 Pro)                   │
+│  • Real-time Updates (Supabase Realtime)                   │
+│  • Task Queue (Upstash QStash)                             │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Shared Packages                          │
+├─────────────────────────────────────────────────────────────┤
+│  📦 database/         # Prisma schemas & migrations         │
+│  📦 eslint-config/    # Shared linting rules               │
+│  📦 typescript-config/ # TypeScript configurations         │
+│  📦 ui-components/    # Shared UI components (Planned)      │
+│  📦 api-client/       # API client library (Planned)       │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Develop
+## 📱 Applications
 
-To develop all apps and packages, run the following command:
+### 🌐 Web Application (`apps/web-app`)
 
+A full-featured Next.js application providing comprehensive meeting analysis capabilities.
+
+**Key Features:**
+- 🎙️ **Live Recording** - Browser-based recording with real-time processing
+- 📁 **File Upload** - Drag-and-drop interface for audio/video files
+- 🤖 **AI Analysis** - Automatic transcription and summarization
+- 🔄 **Real-time Updates** - WebSocket-based status synchronization
+- 📱 **Mobile Responsive** - Optimized for all screen sizes
+- 🔐 **Secure Authentication** - GitHub OAuth integration
+
+**Tech Stack:**
+- Next.js 14 with App Router
+- TypeScript & Tailwind CSS
+- Prisma ORM with PostgreSQL
+- Supabase for real-time features
+- Google Gemini 1.5 Pro for AI processing
+
+[📖 **Detailed Web App Documentation**](./apps/web-app/README.md)
+
+### 📱 Mobile Applications (`apps/mobile-app`) - Coming Soon
+
+Native mobile applications built with React Native, providing optimized mobile experiences.
+
+**Planned Features:**
+- 📱 **Native Recording** - High-quality audio recording with device optimization
+- 🔄 **Offline Support** - Queue recordings for processing when online
+- 🔔 **Push Notifications** - Real-time alerts for job completion
+- 📂 **File Integration** - Native file system access and sharing
+- 🔒 **Biometric Auth** - Fingerprint and Face ID support
+- 🎨 **Native UI** - Platform-specific design patterns
+
+**Planned Tech Stack:**
+- React Native with Expo
+- TypeScript
+- React Query for state management
+- Native modules for recording
+- Shared API client from web app
+
+## 🛠️ Shared Packages
+
+### 📦 `packages/database`
+Centralized database configuration and schemas using Prisma ORM.
+
+**Contents:**
+- Database schema definitions
+- Migration files
+- Seed data scripts
+- Type-safe database client
+
+### 📦 `packages/eslint-config`
+Shared ESLint configuration for consistent code quality across all applications.
+
+### 📦 `packages/typescript-config`
+Common TypeScript configurations optimized for different application types.
+
+### 📦 `packages/ui-components` (Planned)
+Shared React components library for consistent UI across web and mobile.
+
+### 📦 `packages/api-client` (Planned)
+Type-safe API client library for communication with backend services.
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (v18 or higher)
+- [pnpm](https://pnpm.io/installation)
+- [Git](https://git-scm.com/)
+
+### Quick Start
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/your-username/insightful.git
+   cd insightful
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   pnpm install
+   ```
+
+3. **Set up environment variables:**
+   ```bash
+   cp .env.example .env
+   # Fill in the required values in .env
+   ```
+
+4. **Initialize the database:**
+   ```bash
+   pnpm prisma db push --schema=./packages/database/prisma/schema.prisma
+   ```
+
+5. **Start development servers:**
+   ```bash
+   # Start all applications
+   pnpm run dev
+   
+   # Or start specific applications
+   pnpm run dev --filter=web-app
+   ```
+
+### Development Commands
+
+```bash
+# Build all applications
+pnpm run build
+
+# Run linting
+pnpm run lint
+
+# Format code
+pnpm run format
+
+# Type checking
+pnpm run check-types
 ```
-cd my-turborepo
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
+## 🚢 Deployment
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
-```
+### Web Application
+The web application is optimized for deployment on [Vercel](https://vercel.com/).
 
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+1. Connect your GitHub repository to Vercel
+2. Set the root directory to `apps/web-app`
+3. Configure environment variables
+4. Deploy automatically on push to main branch
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
+### Mobile Applications (Future)
+Mobile applications will be distributed through:
+- **iOS**: App Store via Expo Application Services (EAS)
+- **Android**: Google Play Store via EAS
+- **Enterprise**: Over-the-air updates via Expo Updates
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
+## 🔮 Roadmap
 
-### Remote Caching
+### Phase 1: Web Platform (✅ Completed)
+- [x] Core web application with live recording
+- [x] File upload and AI processing
+- [x] Real-time status updates
+- [x] Responsive mobile web interface
+- [x] Production deployment
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+### Phase 2: Mobile Development (🔄 In Progress)
+- [ ] React Native project setup
+- [ ] Shared component library
+- [ ] Native recording implementation
+- [ ] Offline-first architecture
+- [ ] Push notification system
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+### Phase 3: Enhanced Features (📋 Planned)
+- [ ] Multi-language support
+- [ ] Advanced AI features (speaker identification, sentiment analysis)
+- [ ] Team collaboration features
+- [ ] Integration with calendar applications
+- [ ] Export to various formats (PDF, Word, etc.)
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+### Phase 4: Enterprise Features (🎯 Future)
+- [ ] Single Sign-On (SSO) integration
+- [ ] Advanced analytics and reporting
+- [ ] Custom AI model training
+- [ ] White-label solutions
+- [ ] API for third-party integrations
 
-```
-cd my-turborepo
+## 🤝 Contributing
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
+We welcome contributions from the community! Please see our [Contributing Guide](./CONTRIBUTING.md) for details.
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
+### Development Workflow
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Add tests for new functionality
+5. Ensure all tests pass (`pnpm test`)
+6. Commit your changes (`git commit -m 'Add amazing feature'`)
+7. Push to your branch (`git push origin feature/amazing-feature`)
+8. Open a Pull Request
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+## 📄 License
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
+## 🙏 Acknowledgments
 
-## Useful Links
+- [Next.js](https://nextjs.org/) for the amazing React framework
+- [React Native](https://reactnative.dev/) for cross-platform mobile development
+- [Turborepo](https://turbo.build/) for monorepo management
+- [Google Gemini](https://deepmind.google/technologies/gemini/) for AI capabilities
+- [Supabase](https://supabase.com/) for real-time database features
+- [Vercel](https://vercel.com/) for seamless deployment
 
-Learn more about the power of Turborepo:
+---
 
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+**Built with ❤️ by the Insightful Team**
