@@ -43,7 +43,7 @@ const mockJobs: MeetingJob[] = [
   },
 ];
 
-const renderWithLanguageProvider = (component: React.ReactElement) => {
+const renderWithLanguageProvider = (component: React.ReactElement<any>) => {
   return render(
     <LanguageProvider>
       {component}

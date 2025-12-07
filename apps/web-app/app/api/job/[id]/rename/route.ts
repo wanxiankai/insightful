@@ -4,10 +4,8 @@ import { prisma } from '@repo/database';
 import { validateUser } from '@/lib/auth-utils';
 import { handleApiRoute, apiErrors } from '@/lib/api-utils';
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   return handleApiRoute(async () => {
     // 1. 验证用户身份
     const { user, error } = await validateUser();

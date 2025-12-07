@@ -22,11 +22,12 @@ async function getJobDetails(jobId: string, userId: string) {
   return job;
 }
 
-export default async function JobDetailPage({
-  params,
-}: {
-  params: { jobId: string };
-}) {
+export default async function JobDetailPage(
+  props: {
+    params: Promise<{ jobId: string }>;
+  }
+) {
+  const params = await props.params;
   const session = await auth();
   const userId = session?.user?.id;
 

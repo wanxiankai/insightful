@@ -44,7 +44,7 @@ const MockLanguageProvider = ({ children }: { children: React.ReactNode }) => {
 
 // Custom render function that includes providers
 const customRender = (
-  ui: React.ReactElement,
+  ui: React.ReactElement<any>,
   options?: Omit<RenderOptions, 'wrapper'>
 ): ReturnType<typeof render> => {
   const Wrapper = ({ children }: { children: React.ReactNode }) => (

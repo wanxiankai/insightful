@@ -28,7 +28,7 @@ const mockJob = {
   fileUrl: 'test-url'
 };
 
-const renderWithLanguageProvider = (component: React.ReactElement) => {
+const renderWithLanguageProvider = (component: React.ReactElement<any>) => {
   return render(
     <LanguageProvider>
       {component}

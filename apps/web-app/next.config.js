@@ -19,24 +19,17 @@ const nextConfig = {
       },
     ],
   },
-  experimental: {
-    serverComponentsExternalPackages: ['@prisma/client', 'prisma'],
-    outputFileTracingIncludes: {
-      '/api/**/*': ['../../packages/database/generated/prisma/**'],
-      '/*': ['../../packages/database/generated/prisma/**']
-    }
+  // Moved from experimental in Next.js 16
+  serverExternalPackages: ['@prisma/client', 'prisma'],
+  // Moved from experimental.outputFileTracingIncludes in Next.js 16
+  outputFileTracingIncludes: {
+    '/api/**/*': ['../../packages/database/generated/prisma/**'],
+    '/*': ['../../packages/database/generated/prisma/**']
   },
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      config.externals = config.externals || [];
-      config.externals.push({
-        '@prisma/client': '@prisma/client',
-        'prisma': 'prisma'
-      });
-    }
-    return config
+  // Configure Turbopack for monorepo setup (relative path from web-app)
+  turbopack: {
+    root: '../..',
   },
-  outputFileTracing: true,
   transpilePackages: ['database'],
 };
 

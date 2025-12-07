@@ -4,10 +4,8 @@ import { auth } from '@/auth';
 import { prisma } from '@repo/database';
 
 // 删除一个任务及其相关资源
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     // 1. 获取用户身份
     const session = await auth();
